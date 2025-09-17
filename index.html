@@ -1,2069 +1,1155 @@
-<div id="appCtn" style="max-width:800px; margin:0 auto; padding:20px; font-family:'Segoe UI', Arial, sans-serif;">
-  <!-- Theme Toggle Header -->
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-    <h1 style="margin:0; color:#2c3e50;">StudyBuddy</h1>
-    <button id="themeToggleBtn" onclick="toggleTheme()" style="padding:8px 16px; border-radius:20px; border:1px solid #ddd; background:#fff; cursor:pointer;">🌓 Toggle Theme</button>
+<div id="appCtn" style="min-height:100vh; background:#0f0f0f; color:#e0e0e0; font-family:system-ui, -apple-system, sans-serif; transition:all 0.3s ease;">
+  <!-- Header -->
+  <header style="padding:1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <h1 style="margin:0; font-size:1.8rem; font-weight:600; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">StudyBuddy</h1>
+      <span style="font-size:0.9rem; opacity:0.7;">AI-Powered Learning</span>
+    </div>
+    <button id="themeToggleBtn" onclick="toggleTheme()" style="background:#1a1a1a; border:1px solid #444; color:#e0e0e0; padding:0.5rem 1rem; border-radius:2rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:0.5rem;">
+      <span id="themeIcon">🌙</span>
+      <span id="themeText">Dark Mode</span>
+    </button>
+  </header>
+
+  <!-- Main Content -->
+  <main style="padding:1.5rem; max-width:1200px; margin:0 auto;">
+    <!-- Search Bar -->
+    <div style="margin-bottom:2rem;">
+      <div style="position:relative; max-width:600px; margin:0 auto;">
+        <input id="searchInput" type="text" placeholder="Search flashcard sets..." style="width:100%; padding:1rem 1.5rem; background:#1a1a1a; border:1px solid #333; border-radius:2rem; color:#e0e0e0; font-size:1rem; transition:all 0.2s;">
+        <button onclick="performSearch()" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:#667eea; border:none; color:white; padding:0.5rem 1rem; border-radius:1.5rem; cursor:pointer;">Search</button>
+      </div>
+    </div>
+
+    <!-- View Container -->
+    <div id="viewContainer">
+      <!-- Library View (Default) -->
+      <div id="libraryView">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="margin:0; font-size:1.5rem;">Flashcard Library</h2>
+          <button onclick="showCreateSetView()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:1.5rem; cursor:pointer; font-weight:500;">+ Create New Set</button>
+        </div>
+        
+        <div id="setsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
+          <!-- Sets will be dynamically loaded here -->
+        </div>
+      </div>
+
+      <!-- Create/Edit Set View -->
+      <div id="editSetView" hidden>
+        <div style="margin-bottom:1.5rem;">
+          <button onclick="showLibraryView()" style="background:none; border:1px solid #444; color:#e0e0e0; padding:0.5rem 1rem; border-radius:1rem; cursor:pointer; margin-right:1rem;">← Back</button>
+          <button onclick="saveCurrentSet()" style="background:#667eea; border:none; color:white; padding:0.5rem 1rem; border-radius:1rem; cursor:pointer;">Save Set</button>
+        </div>
+        
+        <div style="background:#1a1a1a; border-radius:1rem; padding:1.5rem; margin-bottom:1.5rem;">
+          <h3 style="margin-top:0; margin-bottom:1rem;">Set Details</h3>
+          <input id="setTitleInput" type="text" placeholder="Set Title" style="width:100%; padding:0.8rem; background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0; margin-bottom:1rem;">
+          <textarea id="setDescInput" placeholder="Description (optional)" style="width:100%; padding:0.8rem; background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0; min-height:80px; margin-bottom:1rem;"></textarea>
+          
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <button onclick="generateSetCover()" style="background:#764ba2; border:none; color:white; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;">Generate Cover</button>
+            <div id="coverPreview" style="width:60px; height:60px; background:#333; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; color:#888;">Cover</div>
+          </div>
+        </div>
+        
+        <div style="background:#1a1a1a; border-radius:1rem; padding:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3 style="margin:0;">Flashcards</h3>
+            <button onclick="addNewCard()" style="background:#667eea; border:none; color:white; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;">+ Add Card</button>
+          </div>
+          
+          <div id="cardsList" style="display:flex; flex-direction:column; gap:1rem;">
+            <!-- Cards will be dynamically added here -->
+          </div>
+        </div>
+        
+        <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+          <button onclick="generateAICards()" style="background:#764ba2; border:none; color:white; padding:0.7rem 1.5rem; border-radius:1rem; cursor:pointer; flex:1;">Generate with AI</button>
+          <input id="aiTopicInput" type="text" placeholder="Enter a topic..." style="flex:2; padding:0.7rem; background:#1a1a1a; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0;">
+        </div>
+      </div>
+
+      <!-- Study View -->
+      <div id="studyView" hidden>
+        <div style="margin-bottom:1.5rem;">
+          <button onclick="showLibraryView()" style="background:none; border:1px solid #444; color:#e0e0e0; padding:0.5rem 1rem; border-radius:1rem; cursor:pointer; margin-right:1rem;">← Back</button>
+          <button onclick="exportProgress()" style="background:#444; border:none; color:#e0e0e0; padding:0.5rem 1rem; border-radius:1rem; cursor:pointer; margin-right:1rem;">Export Progress</button>
+          <button onclick="showImportDialog()" style="background:#444; border:none; color:#e0e0e0; padding:0.5rem 1rem; border-radius:1rem; cursor:pointer;">Import Progress</button>
+        </div>
+        
+        <div style="background:#1a1a1a; border-radius:1rem; padding:1.5rem; margin-bottom:1.5rem;">
+          <h2 id="studySetTitle" style="margin-top:0; margin-bottom:0.5rem;"></h2>
+          <p id="studySetDesc" style="margin:0; opacity:0.7;"></p>
+          
+          <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button onclick="startStudyMode('flip')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Flip Cards</button>
+            <button onclick="startStudyMode('practice')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Practice Mode</button>
+            <button onclick="startStudyMode('matching')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Matching Game</button>
+            <button onclick="startStudyMode('test')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Test Mode</button>
+          </div>
+        </div>
+        
+        <div id="studyModeContainer" style="background:#1a1a1a; border-radius:1rem; padding:1.5rem; min-height:400px;">
+          <!-- Study mode content will appear here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- AI Assistant -->
+  <div id="aiAssistantEl" style="position:fixed; bottom:1.5rem; right:1.5rem; width:350px; background:#1a1a1a; border-radius:1rem; border:1px solid #333; box-shadow:0 10px 30px rgba(0,0,0,0.5); transition:all 0.3s ease; transform:translateY(120%);">
+    <div style="padding:1rem; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; display:flex; align-items:center; gap:0.5rem;">
+        <span>🤖</span> Study Assistant
+      </h3>
+      <button onclick="toggleAIAssistant()" style="background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">×</button>
+    </div>
+    <div style="padding:1rem; height:300px; overflow-y:auto;">
+      <div id="aiChatMessagesEl" style="margin-bottom:1rem;">
+        <div style="background:#333; padding:0.8rem; border-radius:0.5rem; margin-bottom:0.8rem;">
+          <strong>AI:</strong> Hello! I'm your study assistant. Ask me anything about your current topic or request hints.
+        </div>
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <input id="aiChatInputEl" type="text" placeholder="Ask a question..." style="flex:1; padding:0.7rem; background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0;">
+        <button onclick="sendAIMessage()" style="background:#667eea; border:none; color:white; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;">Send</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Create Set Section -->
-  <div id="createSetCtn" style="background:#f9f9f9; padding:20px; border-radius:10px; margin-bottom:30px;">
-    <h2 style="margin-top:0;">Create New Study Set</h2>
-    
-    <div style="margin:15px 0;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Set Title:</label>
-      <input id="setTitleInput" type="text" placeholder="Enter a title for your study set" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ddd;">
-    </div>
-    
-    <div style="border-bottom:1px solid #ddd; padding-bottom:10px; margin-bottom:15px;">
-      <button id="manualEntryTab" onclick="showManualEntry()" style="padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer;">Manual Entry</button>
-      <button id="bulkEntryTab" onclick="showBulkEntry()" style="padding:10px; background:none; border:1px solid #ddd; border-radius:5px; cursor:pointer;">Bulk Text Entry</button>
-    </div>
-    
-    <!-- Manual Entry Form -->
-    <div id="manualEntryCtn">
-      <div id="pairsList" style="margin-bottom:15px;"></div>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <input id="termInput" type="text" placeholder="Term" style="padding:10px; border-radius:5px; border:1px solid #ddd;">
-        <input id="definitionInput" type="text" placeholder="Definition" style="padding:10px; border-radius:5px; border:1px solid #ddd;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <input type="file" id="imageInput" accept="image/*" style="flex:1; padding:5px; border-radius:5px; border:1px solid #ddd;">
-          <button onclick="addPair()" style="padding:10px; background:#27ae60; color:white; border:none; border-radius:5px; cursor:pointer;">+ Add</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Bulk Entry Form -->
-    <div id="bulkEntryCtn" hidden>
-      <div style="margin-bottom:10px;">Enter terms and definitions separated by a colon (:) or dash (-) on each line</div>
-      <textarea id="bulkTextInput" rows="6" placeholder="Term: Definition&#10;Term - Definition&#10;Term = Definition" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ddd; margin-bottom:10px;"></textarea>
-      <button id="processAIBtn" onclick="processWithAI()" style="padding:10px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; width:100%; margin-bottom:10px;">🤖 Process with AI</button>
-      <div id="aiProcessingStatus" hidden style="padding:8px; background:#f5f5f5; border-radius:5px; text-align:center;">
-        <span id="aiProcessingText">AI is processing your text...</span>
-      </div>
-    </div>
-    
-    <button onclick="createSet()" style="padding:12px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width:100%;">Create Study Set</button>
-  </div>
+  <!-- AI Assistant Toggle Button -->
+  <button id="aiAssistantToggleEl" onclick="toggleAIAssistant()" style="position:fixed; bottom:1.5rem; right:1.5rem; width:60px; height:60px; background:#667eea; border:none; color:white; border-radius:50%; cursor:pointer; box-shadow:0 5px 15px rgba(102, 126, 234, 0.4); font-size:1.5rem; display:flex; align-items:center; justify-content:center;">🤖</button>
 
-  <!-- Load Set Section -->
-  <div id="loadSetCtn" style="background:#f9f9f9; padding:20px; border-radius:10px; margin-bottom:30px;">
-    <h2 style="margin-top:0;">Load Existing Study Set</h2>
-    <div style="display:flex; gap:10px;">
-      <input id="loadCodeInput" type="text" placeholder="Enter your save code" style="flex:1; padding:10px; border-radius:5px; border:1px solid #ddd;">
-      <button onclick="loadSet()" style="padding:10px; background:#9b59b6; color:white; border:none; border-radius:5px; cursor:pointer;">Load Set</button>
+  <!-- Import Dialog -->
+  <div id="importDialog" hidden style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#1a1a1a; border-radius:1rem; padding:2rem; max-width:500px; width:90%;">
+      <h3 style="margin-top:0; margin-bottom:1rem;">Import Your Progress</h3>
+      <p style="margin-bottom:1.5rem; opacity:0.8;">Paste your save code below to restore your flashcard sets and progress.</p>
+      <textarea id="importCodeInput" placeholder="Paste your save code here..." style="width:100%; padding:1rem; background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0; min-height:120px; margin-bottom:1.5rem;"></textarea>
+      <div style="display:flex; gap:1rem; justify-content:flex-end;">
+        <button onclick="closeImportDialog()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Cancel</button>
+        <button onclick="importProgress()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Import</button>
+      </div>
     </div>
   </div>
 
-  <!-- Study Set Display -->
-  <div id="setDisplayCtn" hidden>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <h2 id="currentSetTitle" style="margin:0;"></h2>
-      <div style="font-family:monospace; background:#eee; padding:5px 10px; border-radius:5px;">Code: <span id="currentSetCode"></span></div>
-    </div>
+  <style>
+    /* Global styles */
+    body { margin:0; padding:0; }
     
-    <!-- Game Mode Selection -->
-    <div style="background:#f5f5f5; padding:15px; border-radius:10px; margin-bottom:20px;">
-      <h3 style="margin-top:0;">Select Game Mode</h3>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
-        <button onclick="startFlashcards()" style="padding:8px 12px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer;">Flashcards</button>
-        <button onclick="startMatch()" style="padding:8px 12px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer;">Match</button>
-        <button onclick="startLearn()" style="padding:8px 12px; background:#9b59b6; color:white; border:none; border-radius:5px; cursor:pointer;">Learn</button>
-        <button onclick="startTest()" style="padding:8px 12px; background:#e67e22; color:white; border:none; border-radius:5px; cursor:pointer;">Test</button>
-        <button onclick="startTypingRace()" style="padding:8px 12px; background:#1abc9c; color:white; border:none; border-radius:5px; cursor:pointer;">Typing Race</button>
-        <button onclick="startMemoryGrid()" style="padding:8px 12px; background:#34495e; color:white; border:none; border-radius:5px; cursor:pointer;">Memory Grid</button>
-        <button onclick="startSuddenDeath()" style="padding:8px 12px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Sudden Death</button>
-        <button onclick="startSurvival()" style="padding:8px 12px; background:#f39c12; color:white; border:none; border-radius:5px; cursor:pointer;">Survival</button>
-        <button onclick="startTowerBuilder()" style="padding:8px 12px; background:#8e44ad; color:white; border:none; border-radius:5px; cursor:pointer;">Tower Builder</button>
-        <button onclick="startScramble()" style="padding:8px 12px; background:#16a085; color:white; border:none; border-radius:5px; cursor:pointer;">Scramble</button>
-        <button onclick="startBossBattle()" style="padding:8px 12px; background:#c0392b; color:white; border:none; border-radius:5px; cursor:pointer;">Boss Battle</button>
-      </div>
-    </div>
-    
-    <!-- Game Container -->
-    <div id="gameContainer" style="background:#f5f5f5; padding:20px; border-radius:10px; margin-bottom:20px; min-height:300px;">
-      <div id="gameContent" style="text-align:center; padding:20px;">
-        <p>Select a game mode to start studying!</p>
-      </div>
-    </div>
-    
-    <!-- Cards Container (for flashcards mode) -->
-    <div id="cardsContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-bottom:30px;" hidden></div>
-    
-    <!-- AI Study Buddy -->
-    <div style="background:#f5f5f5; padding:20px; border-radius:10px; margin-bottom:20px;">
-      <h3 style="margin-top:0;">AI Study Buddy</h3>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
-        <button onclick="startQuiz()" style="padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer;">Start Quiz</button>
-        <button onclick="explainDefinition()" style="padding:10px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer;">Explain Definition</button>
-        <button onclick="studySuggestions()" style="padding:10px; background:#9b59b6; color:white; border:none; border-radius:5px; cursor:pointer;">Study Suggestions</button>
-      </div>
-      <div id="aiProgress" hidden style="height:4px; background:#ddd; border-radius:2px; margin-bottom:10px;">
-        <div id="aiProgressBar" style="height:100%; background:#3498db; width:0%; transition:width 0.3s;"></div>
-      </div>
-      <div id="aiResponse" style="background:white; padding:15px; border-radius:5px; min-height:100px; white-space:pre-wrap;"></div>
-      <div id="aiLoading" hidden style="text-align:center; margin:15px 0;">⏳ AI is thinking...</div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Global state
-  let currentSet = null;
-  let studyPairs = [];
-  let currentGameMode = null;
-  let aiGeneratedPairs = false;
-  let gameState = {}; // Track state for active game
-  
-  // Theme management
-  function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    localStorage.theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
-  }
-  
-  // Initialize theme
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.body.classList.add('dark-theme');
-  }
-  
-  // Tab switching
-  function showManualEntry() {
-    manualEntryCtn.hidden = false;
-    bulkEntryCtn.hidden = true;
-    manualEntryTab.style.background = '#3498db';
-    manualEntryTab.style.color = 'white';
-    bulkEntryTab.style.background = 'none';
-    bulkEntryTab.style.color = 'black';
-  }
-  
-  function showBulkEntry() {
-    manualEntryCtn.hidden = true;
-    bulkEntryCtn.hidden = false;
-    manualEntryTab.style.background = 'none';
-    manualEntryTab.style.color = 'black';
-    bulkEntryTab.style.background = '#3498db';
-    bulkEntryTab.style.color = 'white';
-  }
-  
-  // Add term/definition pair with optional image
-  async function addPair() {
-    if (!termInput.value) return;
-    
-    let imageData = null;
-    if (imageInput.files && imageInput.files[0]) {
-      const file = imageInput.files[0];
-      imageData = await readFileAsDataURL(file);
+    /* Light theme styles */
+    .light-theme {
+      background:#f8f9fa !important;
+      color:#212529 !important;
+    }
+    .light-theme header {
+      border-bottom:1px solid #dee2e6 !important;
+    }
+    .light-theme #themeToggleBtn {
+      background:#e9ecef !important;
+      border:1px solid #ced4da !important;
+      color:#495057 !important;
+    }
+    .light-theme input, .light-theme textarea {
+      background:#ffffff !important;
+      border:1px solid #ced4da !important;
+      color:#212529 !important;
+    }
+    .light-theme .modeBtn {
+      background:#e9ecef !important;
+      border:1px solid #ced4da !important;
+      color:#495057 !important;
+    }
+    .light-theme #aiAssistant, .light-theme #importDialog > div {
+      background:#ffffff !important;
+      border:1px solid #dee2e6 !important;
+    }
+    .light-theme #aiChatMessages > div {
+      background:#f1f3f5 !important;
     }
     
-    studyPairs.push({
-      term: termInput.value, 
-      definition: definitionInput.value || '(No definition provided)',
-      image: imageData
-    });
-    
-    renderPairsList();
-    termInput.value = '';
-    definitionInput.value = '';
-    imageInput.value = '';
-  }
-  
-  // Read file as data URL
-  function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  
-  // Render pairs list
-  function renderPairsList() {
-    pairsList.innerHTML = studyPairs.map((pair, i) => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#eee; border-radius:5px; margin-bottom:5px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${pair.image ? `<img src="${pair.image}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">` : ''}
-          <div>
-            <strong>${pair.term}</strong>: ${pair.definition}
-          </div>
-        </div>
-        <button onclick="removePair(${i})" style="background:#e74c3c; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">×</button>
-      </div>
-    `).join('');
-  }
-  
-  // Remove pair
-  function removePair(index) {
-    studyPairs.splice(index, 1);
-    renderPairsList();
-  }
-  
-  // Process bulk text with AI
-  async function processWithAI() {
-    const text = bulkTextInput.value.trim();
-    if (!text) {
-      alert('Please enter some text to process');
-      return;
+    /* Hover effects */
+    button:hover {
+      transform:translateY(-2px);
+      box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    }
+    .modeBtn:hover {
+      background:#444 !important;
+    }
+    .light-theme .modeBtn:hover {
+      background:#dee2e6 !important;
     }
     
-    // Show processing status
-    aiProcessingStatus.hidden = false;
-    processAIBtn.disabled = true;
-    processAIBtn.textContent = 'Processing...';
-    aiProcessingText.textContent = 'AI is processing your text...';
-    
-    try {
-      const prompt = `
-        I have a list of study terms that I need to organize into a structured format. Please process this text by:
-        1. Identifying each term and its definition (separated by :, -, =, or similar)
-        2. If definitions are missing, generate appropriate definitions for each term
-        3. Organize everything in a logical order (alphabetical or by grouping related concepts)
-        4. Format the output as a JSON array with "term" and "definition" keys
-        
-        Here's the text to process:
-        ${text}
-      `;
-      
-      const response = await generateText(prompt);
-      const parsedResponse = JSON.parse(response);
-      
-      // Clear existing pairs
-      studyPairs = [];
-      
-      // Add processed pairs
-      parsedResponse.forEach(pair => {
-        if (pair.term && pair.definition) {
-          studyPairs.push({
-            term: pair.term.trim(),
-            definition: pair.definition.trim(),
-            image: null
-          });
-        }
-      });
-      
-      // Update UI
-      renderPairsList();
-      aiGeneratedPairs = true;
-      aiProcessingText.textContent = 'Processing complete!';
-      setTimeout(() => {
-        aiProcessingStatus.hidden = true;
-        processAIBtn.disabled = false;
-        processAIBtn.textContent = '🤖 Process with AI';
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Error processing with AI:', error);
-      aiProcessingText.textContent = 'Error processing text. Please try again.';
-      setTimeout(() => {
-        aiProcessingStatus.hidden = true;
-        processAIBtn.disabled = false;
-        processAIBtn.textContent = '🤖 Process with AI';
-      }, 3000);
+    /* Card animations */
+    .card-item {
+      animation:fadeIn 0.3s ease;
     }
-  }
-  
-  // Create study set
-  async function createSet() {
-    const title = setTitleInput.value.trim();
-    if (!title || (!studyPairs.length && !bulkTextInput.value)) {
-      alert('Please enter a title and at least one term/definition pair');
-      return;
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(10px); }
+      to { opacity:1; transform:translateY(0); }
     }
     
-    // Process bulk text if needed and not already AI processed
-    if (!studyPairs.length && bulkTextInput.value && !aiGeneratedPairs) {
-      parseBulkText(bulkTextInput.value);
+    /* Flip card styles */
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      height: 300px;
+      perspective: 1000px;
     }
-    
-    // Generate save code
-    const saveCode = generateSaveCode();
-    
-    // Save to localStorage
-    localStorage[`studySet_${saveCode}`] = JSON.stringify({
-      title,
-      pairs: studyPairs,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Reset form
-    setTitleInput.value = '';
-    studyPairs = [];
-    bulkTextInput.value = '';
-    aiGeneratedPairs = false;
-    renderPairsList();
-    
-    // Show created set
-    await displaySet(saveCode);
-  }
-  
-  // Parse bulk text
-  function parseBulkText(text) {
-    studyPairs = [];
-    const lines = text.split('\n').filter(line => line.trim());
-    
-    for (const line of lines) {
-      // Try different separators
-      let paired = false;
-      for (const sep of [':', '-', '=', ';']) {
-        if (line.includes(sep)) {
-          const parts = line.split(sep);
-          if (parts.length >= 2) {
-            studyPairs.push({
-              term: parts[0].trim(),
-              definition: parts.slice(1).join(sep).trim(),
-              image: null
-            });
-            paired = true;
-            break;
-          }
-        }
-      }
-      
-      // If no separator found, treat as term only
-      if (!paired) {
-        studyPairs.push({
-          term: line.trim(),
-          definition: '',
-          image: null
-        });
-      }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
     }
-  }
-  
-  // Generate save code
-  function generateSaveCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  }
-  
-  // Load set
-  async function loadSet() {
-    const code = loadCodeInput.value.trim().toUpperCase();
-    if (!code) return;
-    
-    const setData = localStorage[`studySet_${code}`];
-    if (!setData) {
-      alert('Invalid save code. Please check and try again.');
-      return;
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
     }
-    
-    await displaySet(code);
-  }
-  
-  // Display set
-  async function displaySet(code) {
-    const setData = JSON.parse(localStorage[`studySet_${code}`]);
-    currentSet = { ...setData, code };
-    
-    // Show set display section
-    setDisplayCtn.hidden = false;
-    currentSetTitle.textContent = setData.title;
-    currentSetCode.textContent = code;
-    
-    // Reset game mode
-    currentGameMode = null;
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    gameContent.innerHTML = '<p>Select a game mode to start studying!</p>';
-    
-    // Scroll to set display
-    setDisplayCtn.scrollIntoView({ behavior: 'smooth' });
-  }
-  
-  // Render cards
-  function renderCards(pairs) {
-    cardsContainer.innerHTML = pairs.map((pair, i) => `
-      <div class="card" onclick="flipCard(this)" style="height:150px; perspective:1000px;">
-        <div style="position:relative; width:100%; height:100%; text-align:center; transition:transform 0.6s; transform-style:preserve-3d;">
-          <div style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#3498db; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; padding:15px; box-sizing:border-box;">
-            ${pair.image ? `<img src="${pair.image}" style="max-width:80px; max-height:60px; object-fit:cover; border-radius:5px; margin-bottom:10px;">` : ''}
-            <h3 style="margin:0; word-break:break-word;">${pair.term}</h3>
-          </div>
-          <div style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#2ecc71; color:white; display:flex; align-items:center; justify-content:center; border-radius:10px; padding:15px; box-sizing:border-box; transform:rotateY(180deg);">
-            <p style="margin:0; word-break:break-word; overflow:auto;">${pair.definition}</p>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-  
-  // Flip card
-  function flipCard(card) {
-    const inner = card.firstElementChild;
-    inner.style.transform = inner.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
-  }
-  
-  // Game Mode Functions
-  function startFlashcards() {
-    currentGameMode = 'flashcards';
-    cardsContainer.hidden = false;
-    gameContainer.hidden = true;
-    renderCards(currentSet.pairs);
-  }
-  
-  function startMatch() {
-    currentGameMode = 'match';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Create match game UI
-    const terms = [...currentSet.pairs];
-    const definitions = [...currentSet.pairs];
-    
-    // Shuffle both arrays
-    shuffleArray(terms);
-    shuffleArray(definitions);
-    
-    gameContent.innerHTML = `
-      <div style="text-align:center; margin-bottom:20px;">
-        <h3>Match Game</h3>
-        <p>Match terms with their definitions</p>
-        <div id="matchStatus" style="margin:15px 0; font-weight:bold;">Matches: 0/${currentSet.pairs.length}</div>
-      </div>
-      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;">
-        ${terms.map((pair, i) => `
-          <div class="match-item" data-term="${pair.term}" data-index="${i}" 
-               onclick="selectMatchItem(this, 'term')" 
-               style="background:#3498db; color:white; padding:15px; border-radius:10px; cursor:pointer; text-align:center; min-height:100px; display:flex; align-items:center; justify-content:center;">
-            ${pair.term}
-          </div>
-        `).join('')}
-        ${definitions.map((pair, i) => `
-          <div class="match-item" data-definition="${pair.definition}" data-index="${i}" 
-               onclick="selectMatchItem(this, 'definition')" 
-               style="background:#2ecc71; color:white; padding:15px; border-radius:10px; cursor:pointer; text-align:center; min-height:100px; display:flex; align-items:center; justify-content:center;">
-            ${pair.definition.length > 30 ? pair.definition.substring(0, 30) + '...' : pair.definition}
-          </div>
-        `).join('')}
-      </div>
-      <div style="text-align:center; margin-top:20px;">
-        <button onclick="exitGame()" style="padding:10px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-      </div>
-    `;
-    
-    // Initialize match game state
-    gameState = {
-      matches: 0,
-      totalMatches: currentSet.pairs.length,
-      selectedTerm: null,
-      selectedDefinition: null
-    };
-  }
-  
-  function selectMatchItem(element, type) {
-    // If item already matched, ignore
-    if (element.dataset.matched) return;
-    
-    // Clear previous selection if same type
-    if ((type === 'term' && gameState.selectedTerm) || 
-        (type === 'definition' && gameState.selectedDefinition)) {
-      // Reset previous selection
-      if (gameState.selectedTerm) gameState.selectedTerm.style.border = 'none';
-      if (gameState.selectedDefinition) gameState.selectedDefinition.style.border = 'none';
-      gameState.selectedTerm = null;
-      gameState.selectedDefinition = null;
-    }
-    
-    // Highlight current selection
-    element.style.border = '3px solid yellow';
-    
-    if (type === 'term') {
-      gameState.selectedTerm = element;
-      // If definition already selected, check match
-      if (gameState.selectedDefinition) {
-        checkMatch();
-      }
-    } else {
-      gameState.selectedDefinition = element;
-      // If term already selected, check match
-      if (gameState.selectedTerm) {
-        checkMatch();
-      }
-    }
-  }
-  
-  function checkMatch() {
-    const termEl = gameState.selectedTerm;
-    const defEl = gameState.selectedDefinition;
-    
-    // Get the pair corresponding to the term
-    const term = termEl.dataset.term;
-    const def = defEl.dataset.definition;
-    
-    // Find the pair in our set
-    const pair = currentSet.pairs.find(p => p.term === term);
-    
-    if (pair && pair.definition === def) {
-      // Match found!
-      termEl.style.backgroundColor = '#27ae60';
-      defEl.style.backgroundColor = '#27ae60';
-      termEl.style.border = 'none';
-      defEl.style.border = 'none';
-      termEl.dataset.matched = 'true';
-      defEl.dataset.matched = 'true';
-      
-      // Update match count
-      gameState.matches++;
-      matchStatus.textContent = `Matches: ${gameState.matches}/${gameState.totalMatches}`;
-      
-      // Check if game completed
-      if (gameState.matches === gameState.totalMatches) {
-        gameContent.insertAdjacentHTML('beforeend', `
-          <div style="margin-top:20px; padding:15px; background:#2ecc71; color:white; border-radius:10px; text-align:center;">
-            <h3>Game Completed!</h3>
-            <p>You matched all pairs correctly!</p>
-          </div>
-        `);
-      }
-    } else {
-      // No match - reset selection with red highlight
-      termEl.style.border = '3px solid red';
-      defEl.style.border = '3px solid red';
-      setTimeout(() => {
-        termEl.style.border = 'none';
-        defEl.style.border = 'none';
-      }, 500);
-    }
-    
-    // Reset selection
-    gameState.selectedTerm = null;
-    gameState.selectedDefinition = null;
-  }
-  
-  function startLearn() {
-    currentGameMode = 'learn';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize learn mode
-    gameState = {
-      currentIndex: 0,
-      masteredTerms: new Set(),
-      terms: [...currentSet.pairs],
-      progress: 0
-    };
-    
-    // Shuffle terms
-    shuffleArray(gameState.terms);
-    
-    // Display first term
-    displayLearnTerm();
-  }
-  
-  function displayLearnTerm() {
-    const term = gameState.terms[gameState.currentIndex];
-    
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Learn Mode</h3>
-        <div style="margin:20px 0; font-size:1.5em; font-weight:bold;">${term.term}</div>
-        <div id="learnDefinition" style="margin:20px 0; padding:15px; background:#eee; border-radius:10px; min-height:100px;">
-          ${term.definition}
-        </div>
-        <div style="margin:20px 0;">
-          <button onclick="markLearned('mastered')" style="padding:10px 20px; background:#27ae60; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">✓ Mastered</button>
-          <button onclick="markLearned('review')" style="padding:10px 20px; background:#e67e22; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">↻ Review</button>
-          <button onclick="markLearned('skip')" style="padding:10px 20px; background:#95a5a6; color:white; border:none; border-radius:5px; cursor:pointer;">Skip</button>
-        </div>
-        <div style="margin-top:20px;">
-          Progress: ${gameState.progress}/${gameState.terms.length} terms
-          <div style="height:10px; background:#ddd; border-radius:5px; margin-top:5px;">
-            <div style="height:100%; background:#3498db; width:${(gameState.progress/gameState.terms.length)*100}%; border-radius:5px;"></div>
-          </div>
-        </div>
-        <div style="margin-top:20px;">
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function markLearned(status) {
-    const term = gameState.terms[gameState.currentIndex];
-    
-    if (status === 'mastered') {
-      gameState.masteredTerms.add(term.term);
-      gameState.progress++;
-    } else if (status === 'review') {
-      // Move item to end of array for later review
-      gameState.terms.splice(gameState.currentIndex, 1);
-      gameState.terms.push(term);
-    }
-    
-    // Move to next term
-    gameState.currentIndex = (gameState.currentIndex + 1) % gameState.terms.length;
-    
-    // Check if all terms are mastered
-    if (gameState.progress === gameState.terms.length) {
-      gameContent.innerHTML = `
-        <div style="text-align:center; padding:20px;">
-          <h3>Congratulations!</h3>
-          <p>You've mastered all terms in this set!</p>
-          <button onclick="startLearn()" style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:15px;">Review Again</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:15px;">Exit Game</button>
-        </div>
-      `;
-      return;
-    }
-    
-    displayLearnTerm();
-  }
-  
-  function startTest() {
-    currentGameMode = 'test';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize test mode
-    gameState = {
-      questions: generateTestQuestions(),
-      currentQuestion: 0,
-      score: 0,
-      answers: []
-    };
-    
-    // Display first question
-    displayTestQuestion();
-  }
-  
-  function generateTestQuestions() {
-    const questions = [];
-    const pairs = [...currentSet.pairs];
-    
-    // Create multiple choice questions
-    pairs.forEach(pair => {
-      // Get incorrect options (other definitions)
-      const others = pairs.filter(p => p.term !== pair.term).map(p => p.definition);
-      const incorrectOptions = shuffleArray([...others]).slice(0, 3);
-      
-      questions.push({
-        type: 'multiple-choice',
-        question: `What is the definition of "${pair.term}"?`,
-        options: shuffleArray([pair.definition, ...incorrectOptions]),
-        correctAnswer: pair.definition,
-        term: pair.term
-      });
-    });
-    
-    // Add true/false questions
-    pairs.forEach(pair => {
-      const isTrue = Math.random() > 0.5;
-      const incorrectPair = pairs.find(p => p.term !== pair.term);
-      
-      questions.push({
-        type: 'true-false',
-        question: isTrue 
-          ? `True or False: "${pair.term}" means "${pair.definition}"` 
-          : `True or False: "${pair.term}" means "${incorrectPair.definition}"`,
-        correctAnswer: isTrue ? 'True' : 'False',
-        term: pair.term,
-        isTrue
-      });
-    });
-    
-    // Add short answer questions
-    shuffleArray(pairs).slice(0, Math.min(5, pairs.length)).forEach(pair => {
-      questions.push({
-        type: 'short-answer',
-        question: `What is the definition of "${pair.term}"?`,
-        correctAnswer: pair.definition,
-        term: pair.term
-      });
-    });
-    
-    return shuffleArray(questions);
-  }
-  
-  function displayTestQuestion() {
-    const q = gameState.questions[gameState.currentQuestion];
-    let optionsHtml = '';
-    
-    if (q.type === 'multiple-choice') {
-      optionsHtml = q.options.map(option => `
-        <div style="margin:10px 0;">
-          <label style="display:flex; align-items:center; cursor:pointer;">
-            <input type="radio" name="mc-option" value="${option}" style="margin-right:10px;">
-            ${option}
-          </label>
-        </div>
-      `).join('');
-    } else if (q.type === 'true-false') {
-      optionsHtml = `
-        <div style="margin:10px 0;">
-          <label style="display:flex; align-items:center; cursor:pointer;">
-            <input type="radio" name="tf-option" value="True" style="margin-right:10px;">
-            True
-          </label>
-        </div>
-        <div style="margin:10px 0;">
-          <label style="display:flex; align-items:center; cursor:pointer;">
-            <input type="radio" name="tf-option" value="False" style="margin-right:10px;">
-            False
-          </label>
-        </div>
-      `;
-    } else if (q.type === 'short-answer') {
-      optionsHtml = `
-        <div style="margin:10px 0;">
-          <input type="text" id="short-answer-input" placeholder="Type your answer here" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ddd;">
-        </div>
-      `;
-    }
-    
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Test Mode</h3>
-        <div style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:10px; text-align:left;">
-          Question ${gameState.currentQuestion + 1} of ${gameState.questions.length} (${q.type === 'multiple-choice' ? 'Multiple Choice' : q.type === 'true-false' ? 'True/False' : 'Short Answer'})
-        </div>
-        <div style="margin:20px 0; font-size:1.2em;">${q.question}</div>
-        <div style="text-align:left; margin:20px 0;">
-          ${optionsHtml}
-        </div>
-        <div style="margin-top:20px;">
-          <button onclick="submitTestAnswer()" style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer;">Submit Answer</button>
-        </div>
-        <div style="margin-top:15px;">Score: ${gameState.score}/${gameState.questions.length}</div>
-        <div style="margin-top:20px;">
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function submitTestAnswer() {
-    const q = gameState.questions[gameState.currentQuestion];
-    let answer = null;
-    let correct = false;
-    
-    if (q.type === 'multiple-choice') {
-      const selected = document.querySelector('input[name="mc-option"]:checked');
-      if (selected) {
-        answer = selected.value;
-        correct = answer === q.correctAnswer;
-      }
-    } else if (q.type === 'true-false') {
-      const selected = document.querySelector('input[name="tf-option"]:checked');
-      if (selected) {
-        answer = selected.value;
-        correct = answer === q.correctAnswer;
-      }
-    } else if (q.type === 'short-answer') {
-      answer = document.getElementById('short-answer-input').value.trim().toLowerCase();
-      correct = answer === q.correctAnswer.toLowerCase();
-    }
-    
-    if (answer !== null) {
-      gameState.answers.push({
-        question: q.question,
-        userAnswer: answer,
-        correctAnswer: q.correctAnswer,
-        correct
-      });
-      
-      if (correct) {
-        gameState.score++;
-      }
-      
-      // Move to next question or show results
-      gameState.currentQuestion++;
-      if (gameState.currentQuestion < gameState.questions.length) {
-        displayTestQuestion();
-      } else {
-        showTestResults();
-      }
-    } else {
-      alert('Please select or enter an answer');
-    }
-  }
-  
-  function showTestResults() {
-    const resultsHtml = gameState.answers.map(a => `
-      <div style="margin:10px 0; padding:10px; border-radius:5px; ${a.correct ? 'background:#d5f4e6' : 'background:#fadbd8'};">
-        <div style="font-weight:bold;">${a.question}</div>
-        <div>Your answer: ${a.userAnswer}</div>
-        ${!a.correct ? `<div>Correct answer: ${a.correctAnswer}</div>` : ''}
-      </div>
-    `).join('');
-    
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Test Results</h3>
-        <div style="margin:20px 0; font-size:1.2em;">Your score: ${gameState.score}/${gameState.questions.length}</div>
-        <div style="text-align:left; max-height:400px; overflow-y:auto; margin:20px 0;">
-          ${resultsHtml}
-        </div>
-        <div style="margin-top:20px;">
-          <button onclick="startTest()" style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Retake Test</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function startTypingRace() {
-    currentGameMode = 'typingRace';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize typing race
-    gameState = {
-      score: 0,
-      lives: 3,
-      activeTerms: [],
-      gameActive: false,
-      speed: 3000, // Initial fall speed in ms
-      speedIncrease: 0.95 // Speed multiplier after each term
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="position:relative; height:400px; background:#3498db; border-radius:10px; overflow:hidden;">
-        <div id="typingRaceTermsContainer" style="position:relative; width:100%; height:100%;"></div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin:15px 0;">
-        <div>Score: <span id="typingRaceScore">0</span></div>
-        <div>Lives: <span id="typingRaceLives">❤️❤️❤️</span></div>
-        <div>Speed: <span id="typingRaceSpeed">1x</span></div>
-      </div>
-      <div style="text-align:center;">
-        <button id="startTypingBtn" onclick="startTypingGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Game</button>
-        <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-      </div>
-      <div id="typingRaceInputContainer" style="margin:15px 0; display:none;">
-        <input id="typingRaceInput" type="text" placeholder="Type the term here..." style="width:100%; padding:10px; border-radius:5px; border:1px solid #ddd;" onkeyup="checkTypingRaceAnswer(event)">
-      </div>
-    `;
-  }
-  
-  function startTypingGame() {
-    gameState.gameActive = true;
-    gameState.score = 0;
-    gameState.lives = 3;
-    gameState.speed = 3000;
-    updateTypingRaceUI();
-    startTypingBtn.hidden = true;
-    typingRaceInputContainer.style.display = 'block';
-    typingRaceInput.focus();
-    spawnFallingTerm();
-  }
-  
-  function spawnFallingTerm() {
-    if (!gameState.gameActive) return;
-    
-    const termData = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    const container = document.getElementById('typingRaceTermsContainer');
-    
-    // Create term element
-    const termEl = document.createElement('div');
-    termEl.className = 'falling-term';
-    termEl.textContent = termData.term;
-    termEl.dataset.definition = termData.definition;
-    termEl.style.cssText = `
-      position:absolute;
-      padding:10px;
-      background:#e74c3c;
-      color:white;
-      border-radius:5px;
-      top:0;
-      left:${Math.random() * (container.offsetWidth - 150)}px;
-      min-width:150px;
-      text-align:center;
-    `;
-    
-    container.appendChild(termEl);
-    
-    // Start falling animation
-    let position = 0;
-    const interval = setInterval(() => {
-      position += 10;
-      termEl.style.top = `${position}px`;
-      
-      // Check if reached bottom
-      if (position >= container.offsetHeight - termEl.offsetHeight) {
-        clearInterval(interval);
-        termEl.remove();
-        handleTypingRaceMiss();
-      }
-    }, gameState.speed / 30);
-    
-    // Store interval ID for cleanup
-    termEl.dataset.intervalId = interval;
-    
-    // Schedule next term
-    setTimeout(() => {
-      spawnFallingTerm();
-    }, Math.random() * 1000 + 500);
-  }
-  
-  function handleTypingRaceMiss() {
-    if (!gameState.gameActive) return;
-    
-    gameState.lives--;
-    updateTypingRaceUI();
-    
-    if (gameState.lives <= 0) {
-      endTypingRaceGame(false);
-    }
-  }
-  
-  function checkTypingRaceAnswer(event) {
-    if (event.key !== 'Enter') return;
-    
-    const input = typingRaceInput.value.trim().toLowerCase();
-    if (!input) return;
-    
-    // Check if any term matches the input
-    const fallingTerms = document.querySelectorAll('.falling-term');
-    let matched = false;
-    
-    fallingTerms.forEach(termEl => {
-      if (termEl.textContent.toLowerCase() === input) {
-        // Found a match
-        matched = true;
-        clearInterval(parseInt(termEl.dataset.intervalId));
-        termEl.style.backgroundColor = '#27ae60';
-        
-        setTimeout(() => {
-          termEl.remove();
-        }, 300);
-        
-        // Update score and speed
-        gameState.score += 10;
-        gameState.speed *= gameState.speedIncrease;
-        updateTypingRaceUI();
-        
-        // Clear input
-        typingRaceInput.value = '';
-      }
-    });
-    
-    if (!matched) {
-      // No match - shake input
-      typingRaceInput.style.animation = 'shake 0.5s';
-      setTimeout(() => {
-        typingRaceInput.style.animation = '';
-      }, 500);
-    }
-  }
-  
-  function updateTypingRaceUI() {
-    typingRaceScore.textContent = gameState.score;
-    typingRaceLives.textContent = '❤️'.repeat(gameState.lives);
-    typingRaceSpeed.textContent = `${(3000 / gameState.speed).toFixed(1)}x`;
-  }
-  
-  function endTypingRaceGame(won) {
-    gameState.gameActive = false;
-    typingRaceInputContainer.style.display = 'none';
-    
-    // Clear all intervals and remove falling terms
-    document.querySelectorAll('.falling-term').forEach(termEl => {
-      clearInterval(parseInt(termEl.dataset.intervalId));
-      termEl.remove();
-    });
-    
-    gameContent.insertAdjacentHTML('beforeend', `
-      <div style="margin-top:20px; padding:15px; ${won ? 'background:#2ecc71' : 'background:#e74c3c'}; color:white; border-radius:10px; text-align:center;">
-        <h3>${won ? 'Game Completed!' : 'Game Over!'}</h3>
-        <p>Your final score: ${gameState.score}</p>
-        <button onclick="startTypingRace()" style="padding:10px 20px; background:#fff; color:#333; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Play Again</button>
-      </div>
-    `);
-  }
-  
-  function startMemoryGrid() {
-    currentGameMode = 'memoryGrid';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize memory grid
-    gameState = {
-      cards: [],
-      flippedCards: [],
-      matchedPairs: 0,
-      moves: 0
-    };
-    
-    // Create memory cards (each term/definition becomes a pair)
-    const terms = [...currentSet.pairs];
-    const cards = [];
-    
-    terms.forEach((pair, index) => {
-      cards.push({
-        id: `term-${index}`,
-        content: pair.term,
-        type: 'term',
-        pairId: index
-      });
-      cards.push({
-        id: `def-${index}`,
-        content: pair.definition.length > 30 ? pair.definition.substring(0, 30) + '...' : pair.definition,
-        type: 'definition',
-        pairId: index
-      });
-    });
-    
-    gameState.cards = shuffleArray(cards);
-    
-    // Create game UI
-    const gridCols = Math.ceil(Math.sqrt(gameState.cards.length));
-    gameContent.innerHTML = `
-      <div style="text-align:center; margin-bottom:20px;">
-        <h3>Memory Grid</h3>
-        <p>Match terms with their definitions</p>
-        <div style="margin:10px 0;">Moves: <span id="memoryMoves">0</span> | Matches: <span id="memoryMatches">0</span>/${terms.length}</div>
-      </div>
-      <div style="display:grid; grid-template-columns: repeat(${gridCols}, 1fr); gap:15px;">
-        ${gameState.cards.map((card, i) => `
-          <div class="memory-card" 
-               data-index="${i}"
-               onclick="flipMemoryCard(${i})"
-               style="height:100px; perspective:1000px; cursor:pointer;">
-            <div style="position:relative; width:100%; height:100%; text-align:center; transition:transform 0.6s; transform-style:preserve-3d;">
-              <div class="memory-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#34495e; color:white; display:flex; align-items:center; justify-content:center; border-radius:10px; box-sizing:border-box;">
-                ?
-              </div>
-              <div class="memory-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:${card.type === 'term' ? '#3498db' : '#2ecc71'}; color:white; display:flex; align-items:center; justify-content:center; border-radius:10px; padding:10px; box-sizing:border-box; transform:rotateY(180deg); font-size:0.9em;">
-                ${card.content}
-              </div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <div style="text-align:center; margin-top:20px;">
-        <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-      </div>
-    `;
-  }
-  
-  function flipMemoryCard(index) {
-    // Get card element
-    const cardEl = document.querySelector(`[data-index="${index}"]`);
-    const innerEl = cardEl.firstElementChild;
-    
-    // If card already flipped, ignore
-    if (cardEl.dataset.flipped === 'true') return;
-    
-    // Flip card
-    innerEl.style.transform = 'rotateY(180deg)';
-    cardEl.dataset.flipped = 'true';
-    
-    // Add to flipped cards
-    gameState.flippedCards.push({
-      index,
-      card: gameState.cards[index]
-    });
-    
-    // Check if two cards flipped
-    if (gameState.flippedCards.length === 2) {
-      gameState.moves++;
-      memoryMoves.textContent = gameState.moves;
-      
-      setTimeout(() => {
-        checkMemoryMatch();
-      }, 1000);
-    }
-  }
-  
-  function checkMemoryMatch() {
-    const [first, second] = gameState.flippedCards;
-    
-    if (first.card.pairId === second.card.pairId && first.card.type !== second.card.type) {
-      // Match found
-      gameState.matchedPairs++;
-      memoryMatches.textContent = gameState.matchedPairs;
-      
-      // Mark as matched
-      const firstEl = document.querySelector(`[data-index="${first.index}"]`);
-      const secondEl = document.querySelector(`[data-index="${second.index}"]`);
-      firstEl.dataset.matched = 'true';
-      secondEl.dataset.matched = 'true';
-      
-      // Check if game completed
-      const totalPairs = currentSet.pairs.length;
-      if (gameState.matchedPairs === totalPairs) {
-        gameContent.insertAdjacentHTML('beforeend', `
-          <div style="margin-top:20px; padding:15px; background:#2ecc71; color:white; border-radius:10px; text-align:center;">
-            <h3>Game Completed!</h3>
-            <p>You found all pairs in ${gameState.moves} moves!</p>
-          </div>
-        `);
-      }
-    } else {
-      // No match - flip cards back
-      const firstEl = document.querySelector(`[data-index="${first.index}"]`);
-      const secondEl = document.querySelector(`[data-index="${second.index}"]`);
-      firstEl.firstElementChild.style.transform = 'rotateY(0deg)';
-      secondEl.firstElementChild.style.transform = 'rotateY(0deg)';
-      firstEl.dataset.flipped = 'false';
-      secondEl.dataset.flipped = 'false';
-    }
-    
-    // Reset flipped cards
-    gameState.flippedCards = [];
-  }
-  
-  function startSuddenDeath() {
-    currentGameMode = 'suddenDeath';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize sudden death
-    gameState = {
-      score: 0,
-      askedQuestions: new Set(),
-      gameOver: false
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Sudden Death</h3>
-        <p>Answer questions correctly. One wrong answer ends the game!</p>
-        <div id="suddenDeathStatus" style="margin:20px 0; font-size:1.2em;">Score: <span id="suddenDeathScore">0</span></div>
-        <div id="suddenDeathQuestion" style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:10px; min-height:100px;">
-          Click Start Game to begin
-        </div>
-        <div id="suddenDeathOptions"></div>
-        <div style="margin-top:20px;">
-          <button id="startSuddenDeathBtn" onclick="startSuddenDeathGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Game</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function startSuddenDeathGame() {
-    gameState.gameOver = false;
-    gameState.score = 0;
-    gameState.askedQuestions = new Set();
-    suddenDeathScore.textContent = gameState.score;
-    startSuddenDeathBtn.hidden = true;
-    
-    // Display first question
-    displaySuddenDeathQuestion();
-  }
-  
-  function displaySuddenDeathQuestion() {
-    if (gameState.gameOver) return;
-    
-    // Get unused question
-    const questions = currentSet.pairs.filter((_, i) => !gameState.askedQuestions.has(i));
-    if (questions.length === 0) {
-      // All questions answered - reset
-      gameState.askedQuestions = new Set();
-      displaySuddenDeathQuestion();
-      return;
-    }
-    
-    // Select random question
-    const randomIndex = Math.floor(Math.random() * questions.length);
-    const question = questions[randomIndex];
-    const questionIndex = currentSet.pairs.indexOf(question);
-    gameState.askedQuestions.add(questionIndex);
-    
-    // Determine question type
-    const isDefinition = Math.random() > 0.5;
-    const otherOptions = currentSet.pairs.filter(p => p.term !== question.term).map(p => p.term);
-    const incorrectOptions = shuffleArray([...otherOptions]).slice(0, 3);
-    
-    // Create options
-    const options = isDefinition 
-      ? shuffleArray([question.term, ...incorrectOptions])
-      : shuffleArray([question.definition, ...currentSet.pairs.filter(p => p.definition !== question.definition).map(p => p.definition).slice(0, 3)]);
-    
-    // Display question
-    suddenDeathQuestion.innerHTML = `
-      <div style="margin-bottom:15px;">
-        <strong>${isDefinition ? 'What term has this definition?' : 'What is the definition of this term?'}</strong>
-      </div>
-      <div style="font-weight:bold;">${isDefinition ? question.definition : question.term}</div>
-    `;
-    
-    suddenDeathOptions.innerHTML = options.map(option => `
-      <div style="margin:10px 0;">
-        <button onclick="answerSuddenDeathQuestion('${option}', '${isDefinition ? question.term : question.definition}')" 
-                style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; text-align:left;">
-          ${option}
-        </button>
-      </div>
-    `).join('');
-  }
-  
-  function answerSuddenDeathQuestion(answer, correctAnswer) {
-    if (gameState.gameOver) return;
-    
-    if (answer === correctAnswer) {
-      // Correct answer
-      gameState.score++;
-      suddenDeathScore.textContent = gameState.score;
-      
-      // Display next question
-      setTimeout(() => {
-        displaySuddenDeathQuestion();
-      }, 500);
-    } else {
-      // Wrong answer - game over
-      gameState.gameOver = true;
-      suddenDeathQuestion.innerHTML = `
-        <div style="color:#e74c3c;">
-          <h3>Game Over!</h3>
-          <p>Final Score: ${gameState.score}</p>
-          <p>The correct answer was: ${correctAnswer}</p>
-        </div>
-      `;
-      suddenDeathOptions.innerHTML = `
-        <button onclick="startSuddenDeathGame()" style="width:100%; padding:10px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Play Again</button>
-      `;
-    }
-  }
-  
-  function startSurvival() {
-    currentGameMode = 'survival';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize survival
-    gameState = {
-      timeLeft: 30, // Starting time
-      score: 0,
-      gameActive: false,
-      timerInterval: null,
-      askedQuestions: new Set()
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Survival Timer</h3>
-        <p>Correct answers add time, wrong answers subtract time!</p>
-        <div id="survivalTimer" style="margin:20px 0; font-size:2em; font-weight:bold; color:#e74c3c;">30</div>
-        <div style="margin:20px 0;">Score: <span id="survivalScore">0</span></div>
-        <div id="survivalQuestion" style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:10px; min-height:100px;">
-          Click Start Game to begin
-        </div>
-        <div id="survivalOptions"></div>
-        <div style="margin-top:20px;">
-          <button id="startSurvivalBtn" onclick="startSurvivalGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Game</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function startSurvivalGame() {
-    gameState.timeLeft = 30;
-    gameState.score = 0;
-    gameState.gameActive = true;
-    gameState.askedQuestions = new Set();
-    
-    survivalTimer.textContent = gameState.timeLeft;
-    survivalScore.textContent = gameState.score;
-    startSurvivalBtn.hidden = true;
-    
-    // Start timer
-    gameState.timerInterval = setInterval(() => {
-      gameState.timeLeft--;
-      survivalTimer.textContent = gameState.timeLeft;
-      
-      if (gameState.timeLeft <= 0) {
-        endSurvivalGame();
-      }
-    }, 1000);
-    
-    // Display first question
-    displaySurvivalQuestion();
-  }
-  
-  function displaySurvivalQuestion() {
-    if (!gameState.gameActive) return;
-    
-    // Get unused question
-    const questions = currentSet.pairs.filter((_, i) => !gameState.askedQuestions.has(i));
-    if (questions.length === 0) {
-      // All questions answered - reset
-      gameState.askedQuestions = new Set();
-    }
-    
-    // Select random question
-    const question = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    const questionIndex = currentSet.pairs.indexOf(question);
-    gameState.askedQuestions.add(questionIndex);
-    
-    // Determine question type
-    const isDefinition = Math.random() > 0.5;
-    const otherOptions = currentSet.pairs.filter(p => p.term !== question.term).map(p => p.term);
-    const incorrectOptions = shuffleArray([...otherOptions]).slice(0, 3);
-    
-    // Create options
-    const options = isDefinition 
-      ? shuffleArray([question.term, ...incorrectOptions])
-      : shuffleArray([question.definition, ...currentSet.pairs.filter(p => p.definition !== question.definition).map(p => p.definition).slice(0, 3)]);
-    
-    // Display question
-    survivalQuestion.innerHTML = `
-      <div style="margin-bottom:15px;">
-        <strong>${isDefinition ? 'What term has this definition?' : 'What is the definition of this term?'}</strong>
-      </div>
-      <div style="font-weight:bold;">${isDefinition ? question.definition : question.term}</div>
-    `;
-    
-    survivalOptions.innerHTML = options.map(option => `
-      <div style="margin:10px 0;">
-        <button onclick="answerSurvivalQuestion('${option}', '${isDefinition ? question.term : question.definition}')" 
-                style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; text-align:left;">
-          ${option}
-        </button>
-      </div>
-    `).join('');
-  }
-  
-  function answerSurvivalQuestion(answer, correctAnswer) {
-    if (!gameState.gameActive) return;
-    
-    if (answer === correctAnswer) {
-      // Correct answer
-      gameState.score++;
-      gameState.timeLeft += 5; // Add 5 seconds
-      survivalScore.textContent = gameState.score;
-      
-      // Update timer color based on time left
-      if (gameState.timeLeft > 20) {
-        survivalTimer.style.color = '#2ecc71';
-      } else if (gameState.timeLeft > 10) {
-        survivalTimer.style.color = '#f39c12';
-      } else {
-        survivalTimer.style.color = '#e74c3c';
-      }
-      
-      // Display next question
-      setTimeout(() => {
-        displaySurvivalQuestion();
-      }, 500);
-    } else {
-      // Wrong answer
-      gameState.timeLeft -= 5; // Subtract 5 seconds
-      if (gameState.timeLeft < 0) gameState.timeLeft = 0;
-      
-      survivalTimer.textContent = gameState.timeLeft;
-      
-      // Update timer color
-      if (gameState.timeLeft > 20) {
-        survivalTimer.style.color = '#2ecc71';
-      } else if (gameState.timeLeft > 10) {
-        survivalTimer.style.color = '#f39c12';
-      } else {
-        survivalTimer.style.color = '#e74c3c';
-      }
-      
-      // Display next question
-      setTimeout(() => {
-        displaySurvivalQuestion();
-      }, 500);
-    }
-  }
-  
-  function endSurvivalGame() {
-    gameState.gameActive = false;
-    clearInterval(gameState.timerInterval);
-    
-    survivalQuestion.innerHTML = `
-      <div style="color:#e74c3c;">
-        <h3>Time's Up!</h3>
-        <p>Final Score: ${gameState.score}</p>
-      </div>
-    `;
-    
-    survivalOptions.innerHTML = `
-      <button onclick="startSurvivalGame()" style="width:100%; padding:10px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Play Again</button>
-    `;
-  }
-  
-  function startTowerBuilder() {
-    currentGameMode = 'towerBuilder';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize tower builder
-    gameState = {
-      towerHeight: 0,
-      score: 0,
-      gameActive: false,
-      currentQuestion: null,
-      towerBlocks: []
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center;">
-        <h3>Tower Builder</h3>
-        <p>Correct answers build up your tower, wrong answers tear it down!</p>
-        <div style="margin:20px 0; width:100%; max-width:300px; min-height:250px; position:relative; background:#ecf0f1; border-radius:5px;">
-          <div id="towerContainer" style="position:absolute; bottom:0; left:0; width:100%;"></div>
-        </div>
-        <div style="margin:15px 0;">
-          Tower Height: <span id="towerHeight">0</span> blocks | Score: <span id="towerScore">0</span>
-        </div>
-        <div id="towerQuestion" style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:10px; min-height:100px; width:100%; max-width:500px;">
-          Click Start Game to begin
-        </div>
-        <div id="towerOptions" style="width:100%; max-width:500px;"></div>
-        <div style="margin-top:20px;">
-          <button id="startTowerBtn" onclick="startTowerGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Game</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  function startTowerGame() {
-    gameState.towerHeight = 0;
-    gameState.score = 0;
-    gameState.gameActive = true;
-    gameState.towerBlocks = [];
-    
-    towerHeight.textContent = gameState.towerHeight;
-    towerScore.textContent = gameState.score;
-    startTowerBtn.hidden = true;
-    
-    // Add base block
-    addTowerBlock('#34495e');
-    
-    // Display first question
-    displayTowerQuestion();
-  }
-  
-  function addTowerBlock(color) {
-    const container = document.getElementById('towerContainer');
-    const block = document.createElement('div');
-    block.style.cssText = `
-      width:100%;
-      height:40px;
-      background:${color};
-      border:1px solid #bdc3c7;
-      box-sizing:border-box;
-      margin-bottom:2px;
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius:1rem;
       display:flex;
       align-items:center;
       justify-content:center;
-      color:white;
-      font-weight:bold;
-    `;
-    
-    // Add block to tower
-    container.insertBefore(block, container.firstChild);
-    gameState.towerBlocks.push(block);
-    gameState.towerHeight++;
-    towerHeight.textContent = gameState.towerHeight;
-  }
-  
-  function removeTowerBlock() {
-    if (gameState.towerBlocks.length <= 1) return; // Never remove base block
-    
-    const block = gameState.towerBlocks.shift();
-    block.style.transition = 'all 0.5s';
-    block.style.height = '0';
-    block.style.paddingTop = '0';
-    block.style.paddingBottom = '0';
-    block.style.overflow = 'hidden';
-    
-    setTimeout(() => {
-      block.remove();
-    }, 500);
-    
-    gameState.towerHeight--;
-    towerHeight.textContent = gameState.towerHeight;
-  }
-  
-  function displayTowerQuestion() {
-    if (!gameState.gameActive) return;
-    
-    // Select random question
-    const question = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    
-    // Determine question type
-    const isDefinition = Math.random() > 0.5;
-    const otherOptions = currentSet.pairs.filter(p => p.term !== question.term).map(p => p.term);
-    const incorrectOptions = shuffleArray([...otherOptions]).slice(0, 3);
-    
-    // Create options
-    const options = isDefinition 
-      ? shuffleArray([question.term, ...incorrectOptions])
-      : shuffleArray([question.definition, ...currentSet.pairs.filter(p => p.definition !== question.definition).map(p => p.definition).slice(0, 3)]);
-    
-    // Display question
-    towerQuestion.innerHTML = `
-      <div style="margin-bottom:15px;">
-        <strong>${isDefinition ? 'What term has this definition?' : 'What is the definition of this term?'}</strong>
-      </div>
-      <div style="font-weight:bold;">${isDefinition ? question.definition : question.term}</div>
-    `;
-    
-    towerOptions.innerHTML = options.map(option => `
-      <div style="margin:10px 0;">
-        <button onclick="answerTowerQuestion('${option}', '${isDefinition ? question.term : question.definition}')" 
-                style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; text-align:left;">
-          ${option}
-        </button>
-      </div>
-    `).join('');
-  }
-  
-  function answerTowerQuestion(answer, correctAnswer) {
-    if (!gameState.gameActive) return;
-    
-    if (answer === correctAnswer) {
-      // Correct answer
-      gameState.score += 10;
-      towerScore.textContent = gameState.score;
-      
-      // Add block
-      addTowerBlock(gameState.towerHeight % 2 === 0 ? '#2ecc71' : '#27ae60');
-      
-      // Animate tower
-      towerContainer.style.transition = 'all 0.3s';
-      towerContainer.style.transform = 'scale(1.05)';
-      setTimeout(() => {
-        towerContainer.style.transform = 'scale(1)';
-      }, 300);
-    } else {
-      // Wrong answer
-      // Remove block
-      removeTowerBlock();
-      
-      // Animate shake
-      towerContainer.style.animation = 'shake 0.5s';
-      setTimeout(() => {
-        towerContainer.style.animation = '';
-      }, 500);
+      padding:1.5rem;
+      box-sizing:border-box;
+    }
+    .flip-card-front {
+      background:#333;
+      color:#e0e0e0;
+    }
+    .flip-card-back {
+      background:#444;
+      color:#e0e0e0;
+      transform: rotateY(180deg);
+    }
+    .light-theme .flip-card-front {
+      background:#e9ecef !important;
+      color:#212529 !important;
+    }
+    .light-theme .flip-card-back {
+      background:#f8f9fa !important;
+      color:#212529 !important;
     }
     
-    // Check if tower collapsed (only base left)
-    if (gameState.towerHeight <= 1) {
-      gameState.gameActive = false;
-      towerQuestion.innerHTML = `
-        <div style="color:#e74c3c;">
-          <h3>Tower Collapsed!</h3>
-          <p>Final Score: ${gameState.score}</p>
-          <p>The correct answer was: ${correctAnswer}</p>
-        </div>
-      `;
-      towerOptions.innerHTML = `
-        <button onclick="startTowerGame()" style="width:100%; padding:10px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Build Again</button>
-      `;
-    } else {
-      // Display next question
-      setTimeout(() => {
-        displayTowerQuestion();
-      }, 500);
+    /* Matching game styles */
+    .matching-grid {
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:1rem;
     }
-  }
-  
-  function startScramble() {
-    currentGameMode = 'scramble';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize scramble
-    gameState = {
-      score: 0,
-      currentWord: null,
-      scrambledWord: null,
-      solvedTerms: new Set()
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Scramble Mode</h3>
-        <p>Unscramble the terms or definitions!</p>
-        <div style="margin:20px 0;">Score: <span id="scrambleScore">0</span></div>
-        <div id="scrambleWord" style="margin:20px 0; font-size:2em; font-weight:bold; letter-spacing:5px;">
-          Click Start Game to begin
-        </div>
-        <div style="margin:20px 0;">
-          <input id="scrambleInput" type="text" placeholder="Type the unscrambled word here..." style="width:100%; max-width:300px; padding:10px; border-radius:5px; border:1px solid #ddd; text-align:center; font-size:1.2em;">
-        </div>
-        <div style="margin-top:20px;">
-          <button id="startScrambleBtn" onclick="startScrambleGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Game</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-        <div id="scrambleHint" style="margin-top:20px; font-style:italic; color:#7f8c8d; display:none;"></div>
-      </div>
-    `;
-  }
-  
-  function startScrambleGame() {
-    gameState.score = 0;
-    gameState.solvedTerms = new Set();
-    scrambleScore.textContent = gameState.score;
-    startScrambleBtn.hidden = true;
-    scrambleInput.style.display = 'block';
-    scrambleInput.focus();
-    
-    // Display first scrambled word
-    nextScrambleWord();
-  }
-  
-  function nextScrambleWord() {
-    // Get unsolved terms
-    const terms = currentSet.pairs.filter((_, i) => !gameState.solvedTerms.has(i));
-    if (terms.length === 0) {
-      // All terms solved - reset
-      gameState.solvedTerms = new Set();
-      nextScrambleWord();
-      return;
+    .matching-item {
+      background:#333;
+      border:1px solid #444;
+      border-radius:0.5rem;
+      padding:1rem;
+      cursor:pointer;
+      text-align:center;
+      transition:all 0.2s;
     }
-    
-    // Select random term
-    const term = terms[Math.floor(Math.random() * terms.length)];
-    const termIndex = currentSet.pairs.indexOf(term);
-    
-    // Determine if scrambling term or definition
-    const scrambleTerm = Math.random() > 0.5;
-    const original = scrambleTerm ? term.term : term.definition;
-    const hint = scrambleTerm ? term.definition : term.term;
-    
-    // Scramble the word
-    const scrambled = scrambleWord(original);
-    
-    gameState.currentWord = original;
-    gameState.scrambledWord = scrambled;
-    gameState.hint = hint;
-    gameState.currentTermIndex = termIndex;
-    
-    // Display scrambled word
-    scrambleWordEl.textContent = scrambled;
-    scrambleHint.textContent = `Hint: ${hint}`;
-    scrambleHint.style.display = 'block';
-    scrambleInput.value = '';
-    
-    // Add enter key listener
-    scrambleInput.onkeyup = (e) => {
-      if (e.key === 'Enter') {
-        checkScrambleAnswer();
-      }
-    };
-  }
-  
-  function scrambleWord(word) {
-    // Convert to array, shuffle, and join back
-    return word.split('').filter(char => char !== ' ').sort(() => Math.random() - 0.5).join('');
-  }
-  
-  function checkScrambleAnswer() {
-    const userAnswer = scrambleInput.value.trim().toLowerCase();
-    const correctAnswer = gameState.currentWord.toLowerCase();
-    
-    if (userAnswer === correctAnswer) {
-      // Correct answer
-      gameState.score += 10;
-      scrambleScore.textContent = gameState.score;
-      gameState.solvedTerms.add(gameState.currentTermIndex);
-      
-      // Animate success
-      scrambleWordEl.style.transition = 'color 0.5s';
-      scrambleWordEl.style.color = '#27ae60';
-      setTimeout(() => {
-        scrambleWordEl.style.color = '';
-        nextScrambleWord();
-      }, 500);
-    } else {
-      // Wrong answer - shake input
-      scrambleInput.style.animation = 'shake 0.5s';
-      setTimeout(() => {
-        scrambleInput.style.animation = '';
-      }, 500);
+    .matching-item:hover {
+      background:#444;
     }
-  }
-  
-  function startBossBattle() {
-    currentGameMode = 'bossBattle';
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    
-    // Initialize boss battle
-    gameState = {
-      bossHealth: 100,
-      playerHealth: 100,
-      currentQuestion: null,
-      questions: [],
-      gameOver: false
-    };
-    
-    // Create game UI
-    gameContent.innerHTML = `
-      <div style="text-align:center;">
-        <h3>Boss Battle</h3>
-        <p>Defeat the AI boss by answering questions correctly!</p>
-        
-        <div style="display:flex; justify-content:space-around; margin:30px 0;">
-          <div style="width:40%;">
-            <div style="font-weight:bold; margin-bottom:5px;">Boss</div>
-            <div style="height:30px; background:#ecf0f1; border-radius:5px; overflow:hidden;">
-              <div id="bossHealthBar" style="height:100%; background:#e74c3c; width:100%; transition:width 0.5s;"></div>
-            </div>
-            <div>HP: <span id="bossHealth">100</span>/100</div>
-          </div>
-          
-          <div style="width:40%;">
-            <div style="font-weight:bold; margin-bottom:5px;">Player</div>
-            <div style="height:30px; background:#ecf0f1; border-radius:5px; overflow:hidden;">
-              <div id="playerHealthBar" style="height:100%; background:#3498db; width:100%; transition:width 0.5s;"></div>
-            </div>
-            <div>HP: <span id="playerHealth">100</span>/100</div>
-          </div>
-        </div>
-        
-        <div id="bossQuestion" style="margin:20px 0; padding:15px; background:#f5f5f5; border-radius:10px; min-height:100px;">
-          Click Start Game to begin
-        </div>
-        <div id="bossOptions"></div>
-        
-        <div style="margin-top:20px;">
-          <button id="startBossBtn" onclick="startBossGame()" style="padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-right:10px;">Start Battle</button>
-          <button onclick="exitGame()" style="padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">Exit Game</button>
-        </div>
-        
-        <div id="bossBattleLog" style="margin-top:20px; max-height:150px; overflow-y:auto; text-align:left; background:#f5f5f5; border-radius:5px; padding:10px; font-family:monospace;"></div>
-      </div>
-    `;
-  }
-  
-  function startBossGame() {
-    gameState.bossHealth = 100;
-    gameState.playerHealth = 100;
-    gameState.gameOver = false;
-    
-    bossHealth.textContent = gameState.bossHealth;
-    playerHealth.textContent = gameState.playerHealth;
-    bossHealthBar.style.width = '100%';
-    playerHealthBar.style.width = '100%';
-    startBossBtn.hidden = true;
-    
-    // Display boss intro
-    bossBattleLog.innerHTML = `<div>Boss: You dare challenge me? Prepare to be defeated!</div>`;
-    
-    // Display first question
-    setTimeout(() => {
-      displayBossQuestion();
-    }, 1500);
-  }
-  
-  function displayBossQuestion() {
-    if (gameState.gameOver) return;
-    
-    // Select random question
-    const question = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    
-    // Determine question type
-    const isDefinition = Math.random() > 0.5;
-    const otherOptions = currentSet.pairs.filter(p => p.term !== question.term).map(p => p.term);
-    const incorrectOptions = shuffleArray([...otherOptions]).slice(0, 3);
-    
-    // Create options
-    const options = isDefinition 
-      ? shuffleArray([question.term, ...incorrectOptions])
-      : shuffleArray([question.definition, ...currentSet.pairs.filter(p => p.definition !== question.definition).map(p => p.definition).slice(0, 3)]);
-    
-    // Display question
-    bossQuestion.innerHTML = `
-      <div style="margin-bottom:15px;">
-        <strong>${isDefinition ? 'Boss asks: What term has this definition?' : 'Boss asks: What is the definition of this term?'}</strong>
-      </div>
-      <div style="font-weight:bold;">${isDefinition ? question.definition : question.term}</div>
-    `;
-    
-    bossOptions.innerHTML = options.map(option => `
-      <div style="margin:10px 0;">
-        <button onclick="answerBossQuestion('${option}', '${isDefinition ? question.term : question.definition}')" 
-                style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer; text-align:left;">
-          ${option}
-        </button>
-      </div>
-    `).join('');
-  }
-  
-  function answerBossQuestion(answer, correctAnswer) {
-    if (gameState.gameOver) return;
-    
-    if (answer === correctAnswer) {
-      // Correct answer - damage boss
-      const damage = Math.floor(Math.random() * 20) + 10;
-      gameState.bossHealth = Math.max(0, gameState.bossHealth - damage);
-      
-      bossHealth.textContent = gameState.bossHealth;
-      bossHealthBar.style.width = `${gameState.bossHealth}%`;
-      
-      // Add to battle log
-      bossBattleLog.innerHTML += `<div style="color:#2ecc71;">Player: Correct! Boss takes ${damage} damage!</div>`;
-      bossBattleLog.scrollTop = bossBattleLog.scrollHeight;
-      
-      // Check if boss defeated
-      if (gameState.bossHealth <= 0) {
-        gameState.gameOver = true;
-        setTimeout(() => {
-          bossQuestion.innerHTML = `
-            <div style="color:#2ecc71;">
-              <h3>Victory!</h3>
-              <p>You have defeated the boss!</p>
-            </div>
-          `;
-          bossOptions.innerHTML = `
-            <button onclick="startBossGame()" style="width:100%; padding:10px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Fight Again</button>
-          `;
-          bossBattleLog.innerHTML += `<div style="color:#2ecc71;">Boss: No! This cannot be! I... have been defeated...</div>`;
-        }, 1000);
-        return;
-      }
-      
-      // Boss responds
-      setTimeout(() => {
-        const responses = [
-          "You got lucky this time!",
-          "Impressive, but you can't beat me!",
-          "Is that all you've got?",
-          "I'll show you true power!"
-        ];
-        bossBattleLog.innerHTML += `<div style="color:#e74c3c;">Boss: ${responses[Math.floor(Math.random() * responses.length)]}</div>`;
-        bossBattleLog.scrollTop = bossBattleLog.scrollHeight;
-      }, 1000);
-    } else {
-      // Wrong answer - player takes damage
-      const damage = Math.floor(Math.random() * 15) + 5;
-      gameState.playerHealth = Math.max(0, gameState.playerHealth - damage);
-      
-      playerHealth.textContent = gameState.playerHealth;
-      playerHealthBar.style.width = `${gameState.playerHealth}%`;
-      
-      // Add to battle log
-      bossBattleLog.innerHTML += `<div style="color:#e74c3c;">Boss: Wrong! Player takes ${damage} damage!</div>`;
-      bossBattleLog.scrollTop = bossBattleLog.scrollHeight;
-      
-      // Check if player defeated
-      if (gameState.playerHealth <= 0) {
-        gameState.gameOver = true;
-        setTimeout(() => {
-          bossQuestion.innerHTML = `
-            <div style="color:#e74c3c;">
-              <h3>Defeat!</h3>
-              <p>You have been defeated by the boss!</p>
-              <p>The correct answer was: ${correctAnswer}</p>
-            </div>
-          `;
-          bossOptions.innerHTML = `
-            <button onclick="startBossGame()" style="width:100%; padding:10px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:10px;">Try Again</button>
-          `;
-          bossBattleLog.innerHTML += `<div style="color:#e74c3c;">Boss: Pathetic! You are no match for me!</div>`;
-        }, 1000);
-        return;
-      }
+    .matching-item.selected {
+      background:#667eea;
+      border-color:#764ba2;
     }
-    
-    // Continue battle
-    setTimeout(() => {
-      displayBossQuestion();
-    }, 1500);
-  }
-  
-  function exitGame() {
-    currentGameMode = null;
-    cardsContainer.hidden = true;
-    gameContainer.hidden = false;
-    gameContent.innerHTML = '<p>Select a game mode to start studying!</p>';
-    gameState = {}; // Reset game state
-  }
-  
-  // AI Study Buddy functions
-  async function startQuiz() {
-    const randomPair = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    showAILoading();
-    
-    const response = await generateTextWithProgress(`Create a quiz question for the study term "${randomPair.term}" with definition "${randomPair.definition}". Provide the question, possible answers (one correct), and reveal the correct answer at the end.`);
-    
-    hideAILoading();
-    aiResponse.innerHTML = formatAIResponse(response);
-  }
-  
-  async function explainDefinition() {
-    const randomPair = currentSet.pairs[Math.floor(Math.random() * currentSet.pairs.length)];
-    showAILoading();
-    
-    const response = await generateTextWithProgress(`Explain the definition of "${randomPair.term}" which is defined as "${randomPair.definition}" in simple, easy-to-understand terms with examples.`);
-    
-    hideAILoading();
-    aiResponse.innerHTML = formatAIResponse(response);
-  }
-  
-  async function studySuggestions() {
-    showAILoading();
-    
-    const termsList = currentSet.pairs.map(p => p.term).join(', ');
-    const response = await generateTextWithProgress(`Provide study suggestions for learning these terms: ${termsList}. Include at least 3 different study techniques or games that would help remember these terms.`);
-    
-    hideAILoading();
-    aiResponse.innerHTML = formatAIResponse(response);
-  }
-  
-  // AI helper functions
-  function showAILoading() {
-    aiResponse.hidden = true;
-    aiLoading.hidden = false;
-    aiProgress.hidden = false;
-    aiProgressBar.style.width = '0%';
-    
-    // Simulate progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      if (progress > 90) progress = 90;
-      aiProgressBar.style.width = `${progress}%`;
-      if (progress >= 90) clearInterval(interval);
-    }, 200);
-  }
-  
-  function hideAILoading() {
-    aiLoading.hidden = true;
-    aiProgress.hidden = true;
-    aiResponse.hidden = false;
-    aiProgressBar.style.width = '100%';
-  }
-  
-  function formatAIResponse(text) {
-    return text.split('\n').map(line => {
-      if (line.match(/^[1-9]\./)) {
-        return `<p style="margin:10px 0 0;"><strong>${line}</strong></p>`;
-      } else if (line.match(/^Answer:/)) {
-        return `<p style="margin:10px 0; padding:10px; background:#e8f5e9; border-radius:5px;"><strong>${line}</strong></p>`;
-      } else if (line.trim()) {
-        return `<p style="margin:5px 0;">${line}</p>`;
-      }
-      return '';
-    }).join('');
-  }
-  
-  // Generate text with progress tracking
-  async function generateTextWithProgress(prompt) {
-    try {
-      // Simulate faster loading by using a timeout
-      const response = await Promise.race([
-        generateText(prompt),
-        new Promise(resolve => setTimeout(() => resolve("AI response is taking longer than expected. Please wait..."), 3000))
-      ]);
-      
-      // Complete progress bar
-      aiProgressBar.style.width = '100%';
-      return response;
-    } catch (error) {
-      console.error("Error generating text:", error);
-      return "Sorry, there was an error generating the response. Please try again.";
+    .matching-item.matched {
+      background:#28a745;
+      border-color:#1e7e34;
+      cursor:default;
     }
-  }
-  
-  // Utility functions
-  function shuffleArray(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    .light-theme .matching-item {
+      background:#e9ecef !important;
+      border:1px solid #ced4da !important;
+      color:#212529 !important;
     }
-    return newArray;
-  }
-  
-  // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
-    // Check for code in URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const codeParam = params.get('code');
-    if (codeParam) {
-      loadCodeInput.value = codeParam;
-      loadSet();
+    .light-theme .matching-item:hover {
+      background:#f8f9fa !important;
     }
-  });
-</script>
+    .light-theme .matching-item.selected {
+      background:#cfe2ff !important;
+      border-color:#b6d4fe !important;
+    }
+    .light-theme .matching-item.matched {
+      background:#d1e7dd !important;
+      border-color:#badbcc !important;
+    }
+  </style>
 
-<style>
-  body {
-    background-color: #f5f7fa;
-    color: #333;
-    transition: background-color 0.3s, color 0.3s;
-    text-align: left;
-  }
-  
-  body.dark-theme {
-    background-color: #1a1a2e;
-    color: #eee;
-  }
-  
-  body.dark-theme #appCtn {
-    color: #eee;
-  }
-  
-  body.dark-theme #createSetCtn,
-  body.dark-theme #loadSetCtn,
-  body.dark-theme #setDisplayCtn,
-  body.dark-theme #gameContainer {
-    background-color: #16213e;
-    color: #ddd;
-  }
-  
-  body.dark-theme #aiResponse {
-    background-color: #0f3460;
-    color: #fff;
-  }
-  
-  body.dark-theme input,
-  body.dark-theme textarea,
-  body.dark-theme #currentSetTitle {
-    background-color: #2c2c54;
-    color: #fff;
-    border: 1px solid #40407a;
-  }
-  
-  body.dark-theme .card > div > div:first-child {
-    background-color: #53354a;
-  }
-  
-  body.dark-theme .card > div > div:last-child {
-    background-color: #48466d;
-  }
-  
-  body.dark-theme button {
-    background-color: #48466d;
-    color: white;
-    border: 1px solid #53354a;
-  }
-  
-  body.dark-theme #bulkEntryTab,
-  body.dark-theme #manualEntryTab {
-    background-color: #2c2c54;
-    color: white;
-  }
-  
-  body.dark-theme .pairsList {
-    background-color: #0f3460;
-  }
-  
-  body.dark-theme #aiProgress {
-    background-color: #2c2c54;
-  }
-  
-  body.dark-theme #aiProgressBar {
-    background-color: #3498db;
-  }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-  
-  .memory-card-front,
-  .memory-card-back {
-    backface-visibility: hidden;
-    transition: transform 0.6s;
-  }
-  
-  .memory-card-back {
-    transform: rotateY(180deg);
-  }
-</style>
+  <script>
+    // App state
+    let state = {
+      theme: 'dark',
+      currentView: 'library',
+      currentSet: null,
+      userSets: [],
+      librarySets: [],
+      studyMode: null,
+      studyProgress: {},
+      aiChatHistory: []
+    };
+
+    // Initialize app
+    function initApp() {
+      // Load saved data
+      loadUserData();
+      
+      // Generate library sets
+      generateLibrarySets();
+      
+      // Render initial view
+      renderLibraryView();
+      
+      // Set theme
+      applyTheme(state.theme);
+    }
+
+    // Theme management
+    function toggleTheme() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(state.theme);
+      localStorage.theme = state.theme;
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        appCtn.classList.add('light-theme');
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Light Mode';
+      } else {
+        appCtn.classList.remove('light-theme');
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Dark Mode';
+      }
+    }
+
+    // Load user data
+    function loadUserData() {
+      // Load theme preference
+      if (localStorage.theme) {
+        state.theme = localStorage.theme;
+      }
+      
+      // Load user sets
+      if (localStorage.userSets) {
+        try {
+          state.userSets = JSON.parse(localStorage.userSets);
+        } catch (e) {
+          console.error('Failed to parse user sets', e);
+        }
+      }
+      
+      // Load study progress
+      if (localStorage.studyProgress) {
+        try {
+          state.studyProgress = JSON.parse(localStorage.studyProgress);
+        } catch (e) {
+          console.error('Failed to parse study progress', e);
+        }
+      }
+    }
+
+    // Save user data
+    function saveUserData() {
+      localStorage.userSets = JSON.stringify(state.userSets);
+      localStorage.studyProgress = JSON.stringify(state.studyProgress);
+    }
+
+    // Generate library sets
+    function generateLibrarySets() {
+      const topics = [
+        { title: 'World Capitals', description: 'Capitals of countries around the world', cards: [
+          { front: 'France', back: 'Paris' },
+          { front: 'Japan', back: 'Tokyo' },
+          { front: 'Brazil', back: 'Brasília' },
+          { front: 'Australia', back: 'Canberra' },
+          { front: 'Egypt', back: 'Cairo' }
+        ]},
+        { title: 'Essential Math Formulas', description: 'Key formulas for algebra and geometry', cards: [
+          { front: 'Area of a circle', back: 'A = πr²' },
+          { front: 'Pythagorean theorem', back: 'a² + b² = c²' },
+          { front: 'Quadratic formula', back: 'x = [-b ± √(b² - 4ac)] / 2a' },
+          { front: 'Slope formula', back: 'm = (y₂ - y₁) / (x₂ - x₁)' },
+          { front: 'Distance formula', back: 'd = √[(x₂ - x₁)² + (y₂ - y₁)²]' }
+        ]},
+        { title: 'Famous Historical Events', description: 'Major events that shaped world history', cards: [
+          { front: 'World War II', back: '1939-1945' },
+          { front: 'French Revolution', back: '1789-1799' },
+          { front: 'Renaissance', back: '14th-17th century' },
+          { front: 'Industrial Revolution', back: '1760-1840' },
+          { front: 'Fall of the Berlin Wall', back: '1989' }
+        ]},
+        { title: 'Human Anatomy', description: 'Major systems and organs of the human body', cards: [
+          { front: 'Largest organ', back: 'Skin' },
+          { front: 'Longest bone', back: 'Femur' },
+          { front: 'Blood pumping organ', back: 'Heart' },
+          { front: 'Oxygen exchange organ', back: 'Lungs' },
+          { front: 'Control center of the body', back: 'Brain' }
+        ]},
+        { title: 'Spanish Vocabulary', description: 'Common Spanish words and phrases', cards: [
+          { front: 'Hello', back: 'Hola' },
+          { front: 'Thank you', back: 'Gracias' },
+          { front: 'Goodbye', back: 'Adiós' },
+          { front: 'Please', back: 'Por favor' },
+          { front: 'Excuse me', back: 'Perdón' }
+        ]},
+        { title: 'Key Science Facts', description: 'Fundamental concepts in physics and chemistry', cards: [
+          { front: 'Speed of light', back: '299,792,458 m/s' },
+          { front: 'Water chemical formula', back: 'H₂O' },
+          { front: 'Absolute zero', back: '-273.15°C or 0 Kelvin' },
+          { front: 'Most abundant gas in atmosphere', back: 'Nitrogen (78%)' },
+          { front: 'Smallest particle of matter', back: 'Atom' }
+        ]}
+      ];
+      
+      state.librarySets = topics.map((set, index) => ({
+        id: `lib-${index}`,
+        title: set.title,
+        description: set.description,
+        cards: set.cards,
+        cover: `https://placehold.co/300x200/333/fff?text=${encodeURIComponent(set.title.substring(0, 10))}`,
+        isLibrary: true
+      }));
+    }
+
+    // View management
+    function showLibraryView() {
+      state.currentView = 'library';
+      libraryView.hidden = false;
+      editSetView.hidden = true;
+      studyView.hidden = true;
+      renderLibraryView();
+    }
+
+    function showCreateSetView() {
+      state.currentView = 'edit';
+      state.currentSet = {
+        id: `user-${Date.now()}`,
+        title: '',
+        description: '',
+        cards: [],
+        cover: null
+      };
+      
+      libraryView.hidden = true;
+      editSetView.hidden = false;
+      studyView.hidden = true;
+      
+      renderEditSetView();
+    }
+
+    function showStudyView(setId) {
+      const set = [...state.userSets, ...state.librarySets].find(s => s.id === setId);
+      if (!set) return;
+      
+      state.currentView = 'study';
+      state.currentSet = set;
+      
+      libraryView.hidden = true;
+      editSetView.hidden = true;
+      studyView.hidden = false;
+      
+      studySetTitle.textContent = set.title;
+      studySetDesc.textContent = set.description;
+      
+      // Reset study mode container
+      studyModeContainer.innerHTML = '<div style="text-align:center; padding:3rem; opacity:0.7;">Select a study mode to begin learning</div>';
+    }
+
+    // Render library view
+    function renderLibraryView() {
+      const allSets = [...state.userSets, ...state.librarySets];
+      setsGrid.innerHTML = '';
+      
+      allSets.forEach(set => {
+        const progress = state.studyProgress[set.id] || { mastered: 0, total: set.cards.length };
+        const progressPercent = progress.total > 0 ? Math.round((progress.mastered / progress.total) * 100) : 0;
+        
+        const setEl = document.createElement('div');
+        setEl.className = 'card-item';
+        setEl.style.cssText = 'background:#1a1a1a; border-radius:1rem; overflow:hidden; border:1px solid #333; transition:all 0.2s; cursor:pointer;';
+        setEl.innerHTML = `
+          <div style="height:150px; background-image:url(${set.cover || 'https://placehold.co/300x200/333/fff?text=Flashcards'}); background-size:cover; background-position:center;"></div>
+          <div style="padding:1.2rem;">
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.2rem;">${set.title}</h3>
+            <p style="margin:0 0 1rem 0; opacity:0.7; font-size:0.9rem;">${set.description}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.9rem; opacity:0.7;">${progress.mastered}/${progress.total} mastered</span>
+              <div style="width:100px; height:8px; background:#333; border-radius:4px; overflow:hidden;">
+                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        setEl.onclick = () => showStudyView(set.id);
+        setsGrid.appendChild(setEl);
+      });
+    }
+
+    // Render edit set view
+    function renderEditSetView() {
+      setTitleInput.value = state.currentSet.title || '';
+      setDescInput.value = state.currentSet.description || '';
+      
+      if (state.currentSet.cover) {
+        coverPreview.innerHTML = `<img src="${state.currentSet.cover}" style="width:100%; height:100%; object-fit:cover; border-radius:0.5rem;">`;
+      } else {
+        coverPreview.innerHTML = 'Cover';
+      }
+      
+      renderCardsList();
+    }
+
+    // Render cards list
+    function renderCardsList() {
+      cardsList.innerHTML = '';
+      
+      if (state.currentSet.cards.length === 0) {
+        cardsList.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.7;">No cards yet. Add some to get started!</div>';
+        return;
+      }
+      
+      state.currentSet.cards.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-item';
+        cardEl.style.cssText = 'background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; padding:1rem;';
+        cardEl.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem;">
+            <span style="font-weight:500;">Card ${index + 1}</span>
+            <div>
+              <button onclick="moveCard(${index}, -1)" style="background:none; border:none; color:#888; cursor:pointer; margin-right:0.5rem;">↑</button>
+              <button onclick="moveCard(${index}, 1)" style="background:none; border:none; color:#888; cursor:pointer; margin-right:0.5rem;">↓</button>
+              <button onclick="deleteCard(${index})" style="background:none; border:none; color:#e74c3c; cursor:pointer;">×</button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div>
+              <label style="display:block; margin-bottom:0.3rem; font-size:0.9rem; opacity:0.7;">Front</label>
+              <textarea onchange="updateCard(${index}, 'front', this.value)" style="width:100%; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:0.3rem; color:#e0e0e0; min-height:80px;">${card.front}</textarea>
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:0.3rem; font-size:0.9rem; opacity:0.7;">Back</label>
+              <textarea onchange="updateCard(${index}, 'back', this.value)" style="width:100%; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:0.3rem; color:#e0e0e0; min-height:80px;">${card.back}</textarea>
+            </div>
+          </div>
+        `;
+        cardsList.appendChild(cardEl);
+      });
+    }
+
+    // Card management
+    function addNewCard() {
+      state.currentSet.cards.push({ front: '', back: '' });
+      renderCardsList();
+    }
+
+    function updateCard(index, field, value) {
+      state.currentSet.cards[index][field] = value;
+    }
+
+    function deleteCard(index) {
+      state.currentSet.cards.splice(index, 1);
+      renderCardsList();
+    }
+
+    function moveCard(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= state.currentSet.cards.length) return;
+      
+      [state.currentSet.cards[index], state.currentSet.cards[newIndex]] = 
+      [state.currentSet.cards[newIndex], state.currentSet.cards[index]];
+      
+      renderCardsList();
+    }
+
+    // Save current set
+    function saveCurrentSet() {
+      state.currentSet.title = setTitleInput.value.trim();
+      state.currentSet.description = setDescInput.value.trim();
+      
+      if (!state.currentSet.title) {
+        alert('Please enter a title for your set');
+        return;
+      }
+      
+      // Check if this is a new set or editing existing
+      const existingIndex = state.userSets.findIndex(s => s.id === state.currentSet.id);
+      if (existingIndex >= 0) {
+        state.userSets[existingIndex] = state.currentSet;
+      } else {
+        state.userSets.push(state.currentSet);
+      }
+      
+      saveUserData();
+      showLibraryView();
+    }
+
+    // Generate set cover with AI
+    async function generateSetCover() {
+      if (!state.currentSet.title) {
+        alert('Please enter a title first');
+        return;
+      }
+      
+      try {
+        coverPreview.innerHTML = '⏳ Generating...';
+        const prompt = `A modern, minimalist illustration representing "${state.currentSet.title}" for educational flashcards, flat design, vibrant colors`;
+        const dataUrl = await root.generateImage(prompt);
+        state.currentSet.cover = dataUrl;
+        coverPreview.innerHTML = `<img src="${dataUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:0.5rem;">`;
+      } catch (error) {
+        console.error('Error generating image:', error);
+        coverPreview.innerHTML = 'Error';
+      }
+    }
+
+    // Generate cards with AI
+    async function generateAICards() {
+      const topic = aiTopicInput.value.trim();
+      if (!topic) {
+        alert('Please enter a topic');
+        return;
+      }
+      
+      try {
+        aiTopicInput.disabled = true;
+        const prompt = `Generate 5 question-answer pairs about "${topic}" for educational flashcards. Format as JSON array with "front" and "back" properties.`;
+        const response = await root.generateText(prompt);
+        
+        try {
+          const cards = JSON.parse(response);
+          if (Array.isArray(cards) && cards.length > 0) {
+            state.currentSet.cards = [...state.currentSet.cards, ...cards];
+            renderCardsList();
+            aiTopicInput.value = '';
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } catch (parseError) {
+          console.error('Error parsing AI response:', parseError);
+          alert('Failed to parse AI response. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error generating cards:', error);
+        alert('Failed to generate cards. Please try again.');
+      } finally {
+        aiTopicInput.disabled = false;
+      }
+    }
+
+    // Study modes
+    function startStudyMode(mode) {
+      state.studyMode = mode;
+      const set = state.currentSet;
+      
+      if (set.cards.length === 0) {
+        alert('This set has no cards to study');
+        return;
+      }
+      
+      switch (mode) {
+        case 'flip':
+          renderFlipMode();
+          break;
+        case 'practice':
+          renderPracticeMode();
+          break;
+        case 'matching':
+          renderMatchingMode();
+          break;
+        case 'test':
+          renderTestMode();
+          break;
+      }
+    }
+
+    // Flip mode
+    function renderFlipMode() {
+      const set = state.currentSet;
+      let currentIndex = 0;
+      
+      function renderCard() {
+        const card = set.cards[currentIndex];
+        studyModeContainer.innerHTML = `
+          <div class="flip-card" id="flipCardEl">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <h3 style="margin:0;">${card.front}</h3>
+              </div>
+              <div class="flip-card-back">
+                <h3 style="margin:0;">${card.back}</h3>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:2rem; display:flex; justify-content:space-between;">
+            <button onclick="previousCard()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
+            <button onclick="flipCard()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Flip Card</button>
+            <button onclick="nextCard()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
+          </div>
+          <div style="margin-top:1rem; text-align:center; opacity:0.7;">
+            Card ${currentIndex + 1} of ${set.cards.length}
+          </div>
+        `;
+      }
+      
+      window.flipCard = function() {
+        const flipCard = flipCardEl;
+        flipCard.classList.toggle('flipped');
+      };
+      
+      window.previousCard = function() {
+        if (currentIndex > 0) {
+          currentIndex--;
+          renderCard();
+        }
+      };
+      
+      window.nextCard = function() {
+        if (currentIndex < set.cards.length - 1) {
+          currentIndex++;
+          renderCard();
+        }
+      };
+      
+      renderCard();
+    }
+
+    // Practice mode
+    function renderPracticeMode() {
+      const set = state.currentSet;
+      let currentIndex = 0;
+      let score = 0;
+      
+      function renderCard() {
+        const card = set.cards[currentIndex];
+        studyModeContainer.innerHTML = `
+          <div style="background:#333; border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
+            <h3 style="margin-top:0; margin-bottom:1.5rem;">${card.front}</h3>
+            <textarea id="practiceAnswer" placeholder="Type your answer here..." style="width:100%; padding:1rem; background:#1a1a1a; border:1px solid #444; border-radius:0.5rem; color:#e0e0e0; min-height:100px; margin-bottom:1rem;"></textarea>
+            <div id="feedbackAreaEl" style="margin-bottom:1rem; min-height:30px;"></div>
+            <button onclick="checkAnswer()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Check Answer</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>Score: ${score}/${set.cards.length}</div>
+            <div>Card ${currentIndex + 1} of ${set.cards.length}</div>
+          </div>
+        `;
+      }
+      
+      window.checkAnswer = function() {
+        const userAnswer = practiceAnswer.value.trim().toLowerCase();
+        const correctAnswer = set.cards[currentIndex].back.toLowerCase();
+        const feedbackArea = feedbackAreaEl;
+        
+        if (userAnswer === correctAnswer) {
+          feedbackArea.innerHTML = '<div style="color:#2ecc71; font-weight:500;">✓ Correct!</div>';
+          score++;
+          
+          // Update progress
+          if (!state.studyProgress[set.id]) {
+            state.studyProgress[set.id] = { mastered: 0, total: set.cards.length };
+          }
+          state.studyProgress[set.id].mastered = Math.max(state.studyProgress[set.id].mastered, score);
+          saveUserData();
+          
+          setTimeout(() => {
+            if (currentIndex < set.cards.length - 1) {
+              currentIndex++;
+              renderCard();
+            } else {
+              showResults();
+            }
+          }, 1500);
+        } else {
+          feedbackArea.innerHTML = `<div style="color:#e74c3c;">✗ Incorrect. The answer is: ${set.cards[currentIndex].back}</div>`;
+        }
+      };
+      
+      function showResults() {
+        studyModeContainer.innerHTML = `
+          <div style="text-align:center; padding:2rem;">
+            <h2 style="margin-top:0;">Practice Complete!</h2>
+            <div style="font-size:3rem; margin:1rem 0;">${score}/${set.cards.length}</div>
+            <p style="margin-bottom:2rem;">You got ${score} out of ${set.cards.length} correct.</p>
+            <button onclick="startStudyMode('practice')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Try Again</button>
+            <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+          </div>
+        `;
+      }
+      
+      renderCard();
+    }
+
+    // Matching mode
+    function renderMatchingMode() {
+      const set = state.currentSet;
+      const shuffled = [...set.cards].sort(() => Math.random() - 0.5);
+      let selected = [];
+      let matched = 0;
+      
+      studyModeContainer.innerHTML = `
+        <div style="margin-bottom:1.5rem;">
+          <h3 style="margin-top:0; margin-bottom:0.5rem;">Matching Game</h3>
+          <p style="margin:0; opacity:0.7;">Match terms with their definitions</p>
+        </div>
+        <div class="matching-grid" id="matchingGridEl"></div>
+        <div style="margin-top:1.5rem; text-align:center;">
+          Matches: ${matched}/${set.cards.length}
+        </div>
+      `;
+      
+      const grid = matchingGridEl;
+      
+      // Create matching items
+      const items = [];
+      shuffled.forEach((card, index) => {
+        items.push({ id: `term-${index}`, text: card.front, type: 'term', pair: `def-${index}` });
+        items.push({ id: `def-${index}`, text: card.back, type: 'definition', pair: `term-${index}` });
+      });
+      
+      // Shuffle items
+      items.sort(() => Math.random() - 0.5);
+      
+      // Render items
+      items.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'matching-item';
+        itemEl.id = item.id;
+        itemEl.textContent = item.text;
+        itemEl.dataset.pair = item.pair;
+        itemEl.onclick = () => selectItem(item.id);
+        grid.appendChild(itemEl);
+      });
+      
+      window.selectItem = function(id) {
+        const item = document.getElementById(id);
+        if (item.classList.contains('matched') || selected.includes(id)) return;
+        
+        item.classList.add('selected');
+        selected.push(id);
+        
+        if (selected.length === 2) {
+          const first = document.getElementById(selected[0]);
+          const second = document.getElementById(selected[1]);
+          
+          if (first.dataset.pair === second.id && second.dataset.pair === first.id) {
+            // Match found
+            first.classList.remove('selected');
+            second.classList.remove('selected');
+            first.classList.add('matched');
+            second.classList.add('matched');
+            matched++;
+            
+            // Update progress
+            if (!state.studyProgress[set.id]) {
+              state.studyProgress[set.id] = { mastered: 0, total: set.cards.length };
+            }
+            state.studyProgress[set.id].mastered = Math.max(state.studyProgress[set.id].mastered, matched);
+            saveUserData();
+            
+            if (matched === set.cards.length) {
+              setTimeout(() => {
+                studyModeContainer.innerHTML = `
+                  <div style="text-align:center; padding:2rem;">
+                    <h2 style="margin-top:0;">Matching Complete!</h2>
+                    <p style="margin-bottom:2rem;">You've matched all pairs correctly!</p>
+                    <button onclick="startStudyMode('matching')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Play Again</button>
+                    <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+                  </div>
+                `;
+              }, 500);
+            }
+          } else {
+            // No match
+            setTimeout(() => {
+              first.classList.remove('selected');
+              second.classList.remove('selected');
+            }, 1000);
+          }
+          
+          selected = [];
+          
+          // Update match counter
+          const matchCounter = studyModeContainer.querySelector('div:last-child');
+          if (matchCounter) {
+            matchCounter.textContent = `Matches: ${matched}/${set.cards.length}`;
+          }
+        }
+      };
+    }
+
+    // Test mode
+    function renderTestMode() {
+      const set = state.currentSet;
+      const questions = set.cards.map(card => ({
+        question: card.front,
+        options: generateOptions(card.back, set.cards),
+        correct: card.back
+      }));
+      
+      let currentQuestion = 0;
+      let score = 0;
+      let answers = [];
+      
+      function renderQuestion() {
+        const q = questions[currentQuestion];
+        studyModeContainer.innerHTML = `
+          <div style="background:#333; border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
+            <h3 style="margin-top:0; margin-bottom:1.5rem;">Question ${currentQuestion + 1} of ${questions.length}</h3>
+            <p style="font-size:1.2rem; margin-bottom:1.5rem;">${q.question}</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              ${q.options.map((option, i) => `
+                <button onclick="selectAnswer('${option}')" class="test-option" style="background:#1a1a1a; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:left; transition:all 0.2s;">
+                  ${String.fromCharCode(65 + i)}. ${option}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <button onclick="previousQuestion()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
+            <button onclick="nextQuestion()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
+          </div>
+        `;
+      }
+      
+      function generateOptions(correct, allCards) {
+        const options = [correct];
+        const others = allCards
+          .filter(card => card.back !== correct)
+          .map(card => card.back)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        
+        return [...options, ...others].sort(() => Math.random() - 0.5);
+      }
+      
+      window.selectAnswer = function(answer) {
+        answers[currentQuestion] = answer;
+        
+        // Visual feedback
+        document.querySelectorAll('.test-option').forEach(btn => {
+          if (btn.textContent.includes(answer)) {
+            btn.style.background = '#667eea';
+          } else {
+            btn.style.background = '#1a1a1a';
+          }
+        });
+      };
+      
+      window.previousQuestion = function() {
+        if (currentQuestion > 0) {
+          currentQuestion--;
+          renderQuestion();
+          
+          // Restore previous answer
+          if (answers[currentQuestion]) {
+            selectAnswer(answers[currentQuestion]);
+          }
+        }
+      };
+      
+      window.nextQuestion = function() {
+        if (currentQuestion < questions.length - 1) {
+          currentQuestion++;
+          renderQuestion();
+          
+          // Restore previous answer
+          if (answers[currentQuestion]) {
+            selectAnswer(answers[currentQuestion]);
+          }
+        } else {
+          // Calculate score
+          score = answers.reduce((acc, answer, i) => {
+            return acc + (answer === questions[i].correct ? 1 : 0);
+          }, 0);
+          
+          // Update progress
+          if (!state.studyProgress[set.id]) {
+            state.studyProgress[set.id] = { mastered: 0, total: set.cards.length };
+          }
+          state.studyProgress[set.id].mastered = Math.max(state.studyProgress[set.id].mastered, score);
+          saveUserData();
+          
+          // Show results
+          studyModeContainer.innerHTML = `
+            <div style="text-align:center; padding:2rem;">
+              <h2 style="margin-top:0;">Test Complete!</h2>
+              <div style="font-size:3rem; margin:1rem 0;">${score}/${questions.length}</div>
+              <p style="margin-bottom:2rem;">You got ${score} out of ${questions.length} correct.</p>
+              <button onclick="startStudyMode('test')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Retake Test</button>
+              <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+            </div>
+          `;
+        }
+      };
+      
+      renderQuestion();
+    }
+
+    // Search functionality
+    function performSearch() {
+      const query = searchInput.value.toLowerCase().trim();
+      if (!query) {
+        renderLibraryView();
+        return;
+      }
+      
+      const allSets = [...state.userSets, ...state.librarySets];
+      const filtered = allSets.filter(set => 
+        set.title.toLowerCase().includes(query) || 
+        set.description.toLowerCase().includes(query)
+      );
+      
+      setsGrid.innerHTML = '';
+      
+      if (filtered.length === 0) {
+        setsGrid.innerHTML = '<div style="text-align:center; padding:3rem; opacity:0.7;">No sets found matching your search.</div>';
+        return;
+      }
+      
+      filtered.forEach(set => {
+        const progress = state.studyProgress[set.id] || { mastered: 0, total: set.cards.length };
+        const progressPercent = progress.total > 0 ? Math.round((progress.mastered / progress.total) * 100) : 0;
+        
+        const setEl = document.createElement('div');
+        setEl.className = 'card-item';
+        setEl.style.cssText = 'background:#1a1a1a; border-radius:1rem; overflow:hidden; border:1px solid #333; transition:all 0.2s; cursor:pointer;';
+        setEl.innerHTML = `
+          <div style="height:150px; background-image:url(${set.cover || 'https://placehold.co/300x200/333/fff?text=Flashcards'}); background-size:cover; background-position:center;"></div>
+          <div style="padding:1.2rem;">
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.2rem;">${set.title}</h3>
+            <p style="margin:0 0 1rem 0; opacity:0.7; font-size:0.9rem;">${set.description}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.9rem; opacity:0.7;">${progress.mastered}/${progress.total} mastered</span>
+              <div style="width:100px; height:8px; background:#333; border-radius:4px; overflow:hidden;">
+                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        setEl.onclick = () => showStudyView(set.id);
+        setsGrid.appendChild(setEl);
+      });
+    }
+
+    // Export/Import functionality
+    function exportProgress() {
+      const data = {
+        userSets: state.userSets,
+        studyProgress: state.studyProgress,
+        timestamp: new Date().toISOString()
+      };
+      
+      const code = btoa(JSON.stringify(data));
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Progress code copied to clipboard!');
+      }).catch(() => {
+        alert('Failed to copy to clipboard. Please copy manually:\n\n' + code);
+      });
+    }
+
+    function showImportDialog() {
+      importDialog.hidden = false;
+    }
+
+    function closeImportDialog() {
+      importDialog.hidden = true;
+      importCodeInput.value = '';
+    }
+
+    function importProgress() {
+      const code = importCodeInput.value.trim();
+      if (!code) {
+        alert('Please enter a valid code');
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(atob(code));
+        
+        if (data.userSets) {
+          state.userSets = data.userSets;
+        }
+        
+        if (data.studyProgress) {
+          state.studyProgress = data.studyProgress;
+        }
+        
+        saveUserData();
+        closeImportDialog();
+        showLibraryView();
+        alert('Progress imported successfully!');
+      } catch (error) {
+        alert('Invalid code. Please check and try again.');
+      }
+    }
+
+    // AI Assistant
+    function toggleAIAssistant() {
+      const assistant = aiAssistantEl;
+      const toggle = aiAssistantToggleEl;
+      
+      if (assistant.style.transform === 'translateY(0%)') {
+        assistant.style.transform = 'translateY(120%)';
+        toggle.style.display = 'flex';
+      } else {
+        assistant.style.transform = 'translateY(0%)';
+        toggle.style.display = 'none';
+      }
+    }
+
+    function sendAIMessage() {
+      const input = aiChatInputEl;
+      const message = input.value.trim();
+      if (!message) return;
+      
+      // Add user message
+      addAIMessage('You', message);
+      input.value = '';
+      
+      // Simulate AI thinking
+      addAIMessage('AI', '...');
+      
+      // Generate AI response
+      setTimeout(async () => {
+        try {
+          const context = state.currentSet ? `The user is currently studying "${state.currentSet.title}". ` : '';
+          const prompt = `${context}The user asked: "${message}". Provide a helpful, educational response.`;
+          const response = await root.generateText(prompt);
+          
+          // Update last message
+          const messages = document.querySelectorAll('#aiChatMessages > div');
+          const lastMessage = messages[messages.length - 1];
+          lastMessage.innerHTML = `<strong>AI:</strong> ${response}`;
+        } catch (error) {
+          console.error('Error generating AI response:', error);
+          const messages = document.querySelectorAll('#aiChatMessages > div');
+          const lastMessage = messages[messages.length - 1];
+          lastMessage.innerHTML = `<strong>AI:</strong> Sorry, I encountered an error. Please try again.`;
+        }
+      }, 1000);
+    }
+
+    function addAIMessage(sender, message) {
+      const messagesContainer = aiChatMessagesEl;
+      const messageEl = document.createElement('div');
+      messageEl.style.cssText = 'background:#333; padding:0.8rem; border-radius:0.5rem; margin-bottom:0.8rem;';
+      messageEl.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      messagesContainer.appendChild(messageEl);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Initialize app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</div>
