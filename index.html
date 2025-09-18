@@ -33,6 +33,10 @@
         <div id="setsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
           <!-- Sets will be dynamically loaded here -->
         </div>
+        
+        <div id="loadMoreIndicator" style="text-align:center; padding:2rem; display:none;">
+          <div style="display:inline-block; width:40px; height:40px; border:4px solid #333; border-top:4px solid #667eea; border-radius:50%; animation:spin 1s linear infinite;"></div>
+        </div>
       </div>
 
       <!-- Create/Edit Set View -->
@@ -49,7 +53,12 @@
           
           <div style="display:flex; gap:1rem; align-items:center;">
             <button onclick="generateSetCover()" style="background:#764ba2; border:none; color:white; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;">Generate Cover</button>
-            <div id="coverPreview" style="width:60px; height:60px; background:#333; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; color:#888;">Cover</div>
+            <div id="coverPreview" style="width:60px; height:60px; background:#333; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; color:#888; position:relative; overflow:hidden;">
+              <div id="coverLoader" style="position:absolute; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; display:none;">
+                <div style="width:30px; height:30px; border:3px solid #333; border-top:3px solid #667eea; border-radius:50%; animation:spin 1s linear infinite;"></div>
+              </div>
+              <span id="coverText">Cover</span>
+            </div>
           </div>
         </div>
         
@@ -82,11 +91,13 @@
           <h2 id="studySetTitle" style="margin-top:0; margin-bottom:0.5rem;"></h2>
           <p id="studySetDesc" style="margin:0; opacity:0.7;"></p>
           
-          <div style="display:flex; gap:1rem; margin-top:1.5rem;">
-            <button onclick="startStudyMode('flip')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Flip Cards</button>
-            <button onclick="startStudyMode('practice')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Practice Mode</button>
-            <button onclick="startStudyMode('matching')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Matching Game</button>
-            <button onclick="startStudyMode('test')" class="modeBtn" style="flex:1; background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Test Mode</button>
+          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:1rem; margin-top:1.5rem;">
+            <button onclick="startStudyMode('flip')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Flip Cards</button>
+            <button onclick="startStudyMode('practice')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Practice Mode</button>
+            <button onclick="startStudyMode('matching')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Matching Game</button>
+            <button onclick="startStudyMode('test')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center;">Test Mode</button>
+            <button onclick="startStudyMode('lightning')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center; grid-column:span 2;">⚡ Lightning Round</button>
+            <button onclick="startStudyMode('memory')" class="modeBtn" style="background:#333; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:center; grid-column:span 2;">🧠 Memory Grid</button>
           </div>
         </div>
         
@@ -124,7 +135,10 @@
   <!-- Import Dialog -->
   <div id="importDialog" hidden style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:1000;">
     <div style="background:#1a1a1a; border-radius:1rem; padding:2rem; max-width:500px; width:90%;">
-      <h3 style="margin-top:0; margin-bottom:1rem;">Import Your Progress</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="margin:0;">Import Your Progress</h3>
+        <button onclick="closeImportDialog()" style="background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">×</button>
+      </div>
       <p style="margin-bottom:1.5rem; opacity:0.8;">Paste your save code below to restore your flashcard sets and progress.</p>
       <textarea id="importCodeInput" placeholder="Paste your save code here..." style="width:100%; padding:1rem; background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; color:#e0e0e0; min-height:120px; margin-bottom:1.5rem;"></textarea>
       <div style="display:flex; gap:1rem; justify-content:flex-end;">
@@ -138,56 +152,108 @@
     /* Global styles */
     body { margin:0; padding:0; }
     
-    /* Light theme styles */
-    .light-theme {
-      background:#f8f9fa !important;
-      color:#212529 !important;
-    }
-    .light-theme header {
-      border-bottom:1px solid #dee2e6 !important;
-    }
-    .light-theme #themeToggleBtn {
-      background:#e9ecef !important;
-      border:1px solid #ced4da !important;
-      color:#495057 !important;
-    }
-    .light-theme input, .light-theme textarea {
-      background:#ffffff !important;
-      border:1px solid #ced4da !important;
-      color:#212529 !important;
-    }
-    .light-theme .modeBtn {
-      background:#e9ecef !important;
-      border:1px solid #ced4da !important;
-      color:#495057 !important;
-    }
-    .light-theme #aiAssistant, .light-theme #importDialog > div {
-      background:#ffffff !important;
-      border:1px solid #dee2e6 !important;
-    }
-    .light-theme #aiChatMessages > div {
-      background:#f1f3f5 !important;
+    /* Theme variables */
+    :root {
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #333;
+      --text-primary: #e0e0e0;
+      --text-secondary: #888;
+      --accent-primary: #667eea;
+      --accent-secondary: #764ba2;
+      --border-color: #333;
+      --hover-glow: rgba(102, 126, 234, 0.3);
     }
     
-    /* Hover effects */
+    .light-theme {
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #e9ecef;
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --accent-primary: #667eea;
+      --accent-secondary: #764ba2;
+      --border-color: #dee2e6;
+      --hover-glow: rgba(102, 126, 234, 0.2);
+    }
+    
+    /* Apply theme variables */
+    #appCtn {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    
+    header {
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    #themeToggleBtn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    
+    input, textarea {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    
+    .modeBtn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    
+    #aiAssistantEl, #importDialog > div {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+    }
+    
+    #aiChatMessagesEl > div {
+      background: var(--bg-tertiary);
+    }
+    
+    /* Hover effects with glow */
     button:hover {
-      transform:translateY(-2px);
-      box-shadow:0 5px 15px rgba(0,0,0,0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2), 0 0 15px var(--hover-glow);
+      transition: all 0.3s ease;
     }
+    
+    .card-item:hover {
+      transform: scale(1.03);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px var(--hover-glow);
+      transition: all 0.3s ease;
+    }
+    
     .modeBtn:hover {
-      background:#444 !important;
-    }
-    .light-theme .modeBtn:hover {
-      background:#dee2e6 !important;
+      background: var(--accent-primary) !important;
+      color: white !important;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
     }
     
     /* Card animations */
     .card-item {
-      animation:fadeIn 0.3s ease;
+      animation: fadeIn 0.5s ease;
+      transition: all 0.3s ease;
     }
+    
     @keyframes fadeIn {
-      from { opacity:0; transform:translateY(10px); }
+      from { opacity:0; transform:translateY(15px); }
       to { opacity:1; transform:translateY(0); }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
     }
     
     /* Flip card styles */
@@ -197,17 +263,20 @@
       height: 300px;
       perspective: 1000px;
     }
+    
     .flip-card-inner {
       position: relative;
       width: 100%;
       height: 100%;
       text-align: center;
-      transition: transform 0.6s;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
     }
+    
     .flip-card.flipped .flip-card-inner {
       transform: rotateY(180deg);
     }
+    
     .flip-card-front, .flip-card-back {
       position: absolute;
       width: 100%;
@@ -220,23 +289,14 @@
       justify-content:center;
       padding:1.5rem;
       box-sizing:border-box;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
-    .flip-card-front {
-      background:#333;
-      color:#e0e0e0;
-    }
+    
     .flip-card-back {
-      background:#444;
-      color:#e0e0e0;
       transform: rotateY(180deg);
-    }
-    .light-theme .flip-card-front {
-      background:#e9ecef !important;
-      color:#212529 !important;
-    }
-    .light-theme .flip-card-back {
-      background:#f8f9fa !important;
-      color:#212529 !important;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     }
     
     /* Matching game styles */
@@ -245,42 +305,171 @@
       grid-template-columns:repeat(2, 1fr);
       gap:1rem;
     }
+    
     .matching-item {
-      background:#333;
-      border:1px solid #444;
+      background: var(--bg-tertiary);
+      border:1px solid var(--border-color);
       border-radius:0.5rem;
       padding:1rem;
       cursor:pointer;
       text-align:center;
-      transition:all 0.2s;
+      transition:all 0.3s ease;
     }
+    
     .matching-item:hover {
-      background:#444;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      background: var(--accent-primary);
+      color: white;
     }
+    
     .matching-item.selected {
-      background:#667eea;
-      border-color:#764ba2;
+      background: var(--accent-primary);
+      border-color: var(--accent-secondary);
+      color: white;
+      animation: pulse 1.5s infinite;
     }
+    
     .matching-item.matched {
-      background:#28a745;
-      border-color:#1e7e34;
+      background: #28a745;
+      border-color: #1e7e34;
       cursor:default;
+      animation: none;
     }
-    .light-theme .matching-item {
-      background:#e9ecef !important;
-      border:1px solid #ced4da !important;
-      color:#212529 !important;
+    
+    /* Lightning round styles */
+    .lightning-container {
+      text-align: center;
     }
-    .light-theme .matching-item:hover {
-      background:#f8f9fa !important;
+    
+    .lightning-timer {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 1rem 0;
+      color: var(--accent-primary);
+      text-shadow: 0 0 10px var(--hover-glow);
     }
-    .light-theme .matching-item.selected {
-      background:#cfe2ff !important;
-      border-color:#b6d4fe !important;
+    
+    .lightning-question {
+      background: var(--bg-tertiary);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      font-size: 1.5rem;
     }
-    .light-theme .matching-item.matched {
-      background:#d1e7dd !important;
-      border-color:#badbcc !important;
+    
+    .lightning-score {
+      font-size: 1.5rem;
+      margin: 1rem 0;
+    }
+    
+    .lightning-input {
+      width: 100%;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Memory grid styles */
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    
+    .memory-card {
+      aspect-ratio: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .memory-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .memory-card.flipped {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      transform: rotateY(180deg);
+    }
+    
+    .memory-card.matched {
+      background: #28a745;
+      color: white;
+      cursor: default;
+      animation: pulse 1s;
+    }
+    
+    .memory-card-content {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      transition: transform 0.6s;
+    }
+    
+    .memory-card-front {
+      transform: rotateY(0deg);
+    }
+    
+    .memory-card-back {
+      transform: rotateY(180deg);
+    }
+    
+    .memory-card.flipped .memory-card-front {
+      transform: rotateY(180deg);
+    }
+    
+    .memory-card.flipped .memory-card-back {
+      transform: rotateY(0deg);
+    }
+    
+    /* Celebration animation */
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent-primary);
+      animation: confetti-fall 3s linear forwards;
+    }
+    
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
     }
   </style>
 
@@ -294,7 +483,9 @@
       librarySets: [],
       studyMode: null,
       studyProgress: {},
-      aiChatHistory: []
+      aiChatHistory: [],
+      displayedSets: 9,
+      setsPerLoad: 9
     };
 
     // Initialize app
@@ -310,6 +501,9 @@
       
       // Set theme
       applyTheme(state.theme);
+      
+      // Setup infinite scroll
+      setupInfiniteScroll();
     }
 
     // Theme management
@@ -317,6 +511,12 @@
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme(state.theme);
       localStorage.theme = state.theme;
+      
+      // Add theme transition animation
+      appCtn.style.transition = 'all 0.5s ease';
+      setTimeout(() => {
+        appCtn.style.transition = 'all 0.3s ease';
+      }, 500);
     }
 
     function applyTheme(theme) {
@@ -407,6 +607,48 @@
           { front: 'Absolute zero', back: '-273.15°C or 0 Kelvin' },
           { front: 'Most abundant gas in atmosphere', back: 'Nitrogen (78%)' },
           { front: 'Smallest particle of matter', back: 'Atom' }
+        ]},
+        { title: 'Programming Concepts', description: 'Fundamental programming principles', cards: [
+          { front: 'Variable', back: 'A named storage location in memory' },
+          { front: 'Function', back: 'A reusable block of code' },
+          { front: 'Loop', back: 'A control structure for repetition' },
+          { front: 'Array', back: 'A collection of elements' },
+          { front: 'Object', back: 'A collection of properties and methods' }
+        ]},
+        { title: 'Art History', description: 'Major art movements and artists', cards: [
+          { front: 'Renaissance', back: '14th-17th century cultural movement' },
+          { front: 'Impressionism', back: '19th century art movement' },
+          { front: 'Cubism', back: 'Early 20th century art movement' },
+          { front: 'Surrealism', back: '20th century cultural movement' },
+          { front: 'Pop Art', back: 'Mid-20th century art movement' }
+        ]},
+        { title: 'Geography Basics', description: 'Fundamental geography concepts', cards: [
+          { front: 'Continent', back: 'One of Earth\'s seven main landmasses' },
+          { front: 'Equator', back: 'Imaginary line around Earth\'s middle' },
+          { front: 'Hemisphere', back: 'Half of the Earth' },
+          { front: 'Latitude', back: 'Distance north or south from equator' },
+          { front: 'Longitude', back: 'Distance east or west from prime meridian' }
+        ]},
+        { title: 'Literary Devices', description: 'Techniques used in literature', cards: [
+          { front: 'Metaphor', back: 'Direct comparison between two things' },
+          { front: 'Simile', back: 'Comparison using "like" or "as"' },
+          { front: 'Alliteration', back: 'Repetition of initial consonant sounds' },
+          { front: 'Personification', back: 'Giving human traits to non-human things' },
+          { front: 'Hyperbole', back: 'Extreme exaggeration for effect' }
+        ]},
+        { title: 'Music Theory', description: 'Fundamental concepts in music', cards: [
+          { front: 'Scale', back: 'Sequence of notes in order' },
+          { front: 'Chord', back: 'Three or more notes played together' },
+          { front: 'Tempo', back: 'Speed of the music' },
+          { front: 'Dynamics', back: 'Volume of the music' },
+          { front: 'Melody', back: 'Sequence of single notes' }
+        ]},
+        { title: 'Psychology Basics', description: 'Fundamental psychology concepts', cards: [
+          { front: 'Cognition', back: 'Mental processes of understanding' },
+          { front: 'Behaviorism', back: 'Study of observable behavior' },
+          { front: 'Memory', back: 'Process of storing information' },
+          { front: 'Perception', back: 'Interpretation of sensory information' },
+          { front: 'Emotion', back: 'Complex psychological state' }
         ]}
       ];
       
@@ -420,12 +662,50 @@
       }));
     }
 
+    // Setup infinite scroll
+    function setupInfiniteScroll() {
+      window.addEventListener('scroll', () => {
+        if (state.currentView !== 'library') return;
+        
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
+          loadMoreSets();
+        }
+      });
+    }
+
+    // Load more sets
+    function loadMoreSets() {
+      const allSets = [...state.userSets, ...state.librarySets];
+      if (state.displayedSets >= allSets.length) return;
+      
+      loadMoreIndicator.style.display = 'block';
+      
+      // Simulate loading delay
+      setTimeout(() => {
+        state.displayedSets += state.setsPerLoad;
+        renderLibraryView();
+        loadMoreIndicator.style.display = 'none';
+      }, 800);
+    }
+
     // View management
     function showLibraryView() {
       state.currentView = 'library';
       libraryView.hidden = false;
       editSetView.hidden = true;
       studyView.hidden = true;
+      
+      // Add fade-in animation
+      libraryView.style.opacity = '0';
+      setTimeout(() => {
+        libraryView.style.transition = 'opacity 0.5s ease';
+        libraryView.style.opacity = '1';
+      }, 10);
+      
       renderLibraryView();
     }
 
@@ -443,6 +723,13 @@
       editSetView.hidden = false;
       studyView.hidden = true;
       
+      // Add fade-in animation
+      editSetView.style.opacity = '0';
+      setTimeout(() => {
+        editSetView.style.transition = 'opacity 0.5s ease';
+        editSetView.style.opacity = '1';
+      }, 10);
+      
       renderEditSetView();
     }
 
@@ -457,6 +744,13 @@
       editSetView.hidden = true;
       studyView.hidden = false;
       
+      // Add fade-in animation
+      studyView.style.opacity = '0';
+      setTimeout(() => {
+        studyView.style.transition = 'opacity 0.5s ease';
+        studyView.style.opacity = '1';
+      }, 10);
+      
       studySetTitle.textContent = set.title;
       studySetDesc.textContent = set.description;
       
@@ -467,15 +761,16 @@
     // Render library view
     function renderLibraryView() {
       const allSets = [...state.userSets, ...state.librarySets];
+      const setsToShow = allSets.slice(0, state.displayedSets);
       setsGrid.innerHTML = '';
       
-      allSets.forEach(set => {
+      setsToShow.forEach(set => {
         const progress = state.studyProgress[set.id] || { mastered: 0, total: set.cards.length };
         const progressPercent = progress.total > 0 ? Math.round((progress.mastered / progress.total) * 100) : 0;
         
         const setEl = document.createElement('div');
         setEl.className = 'card-item';
-        setEl.style.cssText = 'background:#1a1a1a; border-radius:1rem; overflow:hidden; border:1px solid #333; transition:all 0.2s; cursor:pointer;';
+        setEl.style.cssText = 'background:var(--bg-secondary); border-radius:1rem; overflow:hidden; border:1px solid var(--border-color); cursor:pointer;';
         setEl.innerHTML = `
           <div style="height:150px; background-image:url(${set.cover || 'https://placehold.co/300x200/333/fff?text=Flashcards'}); background-size:cover; background-position:center;"></div>
           <div style="padding:1.2rem;">
@@ -483,8 +778,8 @@
             <p style="margin:0 0 1rem 0; opacity:0.7; font-size:0.9rem;">${set.description}</p>
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:0.9rem; opacity:0.7;">${progress.mastered}/${progress.total} mastered</span>
-              <div style="width:100px; height:8px; background:#333; border-radius:4px; overflow:hidden;">
-                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+              <div style="width:100px; height:8px; background:var(--bg-tertiary); border-radius:4px; overflow:hidden;">
+                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));"></div>
               </div>
             </div>
           </div>
@@ -493,6 +788,13 @@
         setEl.onclick = () => showStudyView(set.id);
         setsGrid.appendChild(setEl);
       });
+      
+      // Show/hide load more indicator
+      if (state.displayedSets < allSets.length) {
+        loadMoreIndicator.style.display = 'block';
+      } else {
+        loadMoreIndicator.style.display = 'none';
+      }
     }
 
     // Render edit set view
@@ -502,8 +804,10 @@
       
       if (state.currentSet.cover) {
         coverPreview.innerHTML = `<img src="${state.currentSet.cover}" style="width:100%; height:100%; object-fit:cover; border-radius:0.5rem;">`;
+        coverText.style.display = 'none';
       } else {
-        coverPreview.innerHTML = 'Cover';
+        coverPreview.innerHTML = '';
+        coverText.style.display = 'flex';
       }
       
       renderCardsList();
@@ -521,24 +825,24 @@
       state.currentSet.cards.forEach((card, index) => {
         const cardEl = document.createElement('div');
         cardEl.className = 'card-item';
-        cardEl.style.cssText = 'background:#0f0f0f; border:1px solid #333; border-radius:0.5rem; padding:1rem;';
+        cardEl.style.cssText = 'background:var(--bg-primary); border:1px solid var(--border-color); border-radius:0.5rem; padding:1rem;';
         cardEl.innerHTML = `
           <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem;">
             <span style="font-weight:500;">Card ${index + 1}</span>
             <div>
-              <button onclick="moveCard(${index}, -1)" style="background:none; border:none; color:#888; cursor:pointer; margin-right:0.5rem;">↑</button>
-              <button onclick="moveCard(${index}, 1)" style="background:none; border:none; color:#888; cursor:pointer; margin-right:0.5rem;">↓</button>
+              <button onclick="moveCard(${index}, -1)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; margin-right:0.5rem;">↑</button>
+              <button onclick="moveCard(${index}, 1)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; margin-right:0.5rem;">↓</button>
               <button onclick="deleteCard(${index})" style="background:none; border:none; color:#e74c3c; cursor:pointer;">×</button>
             </div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
             <div>
               <label style="display:block; margin-bottom:0.3rem; font-size:0.9rem; opacity:0.7;">Front</label>
-              <textarea onchange="updateCard(${index}, 'front', this.value)" style="width:100%; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:0.3rem; color:#e0e0e0; min-height:80px;">${card.front}</textarea>
+              <textarea onchange="updateCard(${index}, 'front', this.value)" style="width:100%; padding:0.5rem; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:0.3rem; color:var(--text-primary); min-height:80px;">${card.front}</textarea>
             </div>
             <div>
               <label style="display:block; margin-bottom:0.3rem; font-size:0.9rem; opacity:0.7;">Back</label>
-              <textarea onchange="updateCard(${index}, 'back', this.value)" style="width:100%; padding:0.5rem; background:#1a1a1a; border:1px solid #333; border-radius:0.3rem; color:#e0e0e0; min-height:80px;">${card.back}</textarea>
+              <textarea onchange="updateCard(${index}, 'back', this.value)" style="width:100%; padding:0.5rem; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:0.3rem; color:var(--text-primary); min-height:80px;">${card.back}</textarea>
             </div>
           </div>
         `;
@@ -601,14 +905,22 @@
       }
       
       try {
-        coverPreview.innerHTML = '⏳ Generating...';
+        // Show loading animation
+        coverLoader.style.display = 'flex';
+        coverText.style.display = 'none';
+        
         const prompt = `A modern, minimalist illustration representing "${state.currentSet.title}" for educational flashcards, flat design, vibrant colors`;
         const dataUrl = await root.generateImage(prompt);
         state.currentSet.cover = dataUrl;
+        
+        // Hide loader and show image
+        coverLoader.style.display = 'none';
         coverPreview.innerHTML = `<img src="${dataUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:0.5rem;">`;
       } catch (error) {
         console.error('Error generating image:', error);
-        coverPreview.innerHTML = 'Error';
+        coverLoader.style.display = 'none';
+        coverText.style.display = 'flex';
+        coverText.textContent = 'Error';
       }
     }
 
@@ -656,20 +968,33 @@
         return;
       }
       
-      switch (mode) {
-        case 'flip':
-          renderFlipMode();
-          break;
-        case 'practice':
-          renderPracticeMode();
-          break;
-        case 'matching':
-          renderMatchingMode();
-          break;
-        case 'test':
-          renderTestMode();
-          break;
-      }
+      // Add mode transition animation
+      studyModeContainer.style.opacity = '0';
+      setTimeout(() => {
+        studyModeContainer.style.transition = 'opacity 0.5s ease';
+        studyModeContainer.style.opacity = '1';
+        
+        switch (mode) {
+          case 'flip':
+            renderFlipMode();
+            break;
+          case 'practice':
+            renderPracticeMode();
+            break;
+          case 'matching':
+            renderMatchingMode();
+            break;
+          case 'test':
+            renderTestMode();
+            break;
+          case 'lightning':
+            renderLightningMode();
+            break;
+          case 'memory':
+            renderMemoryMode();
+            break;
+        }
+      }, 300);
     }
 
     // Flip mode
@@ -691,9 +1016,9 @@
             </div>
           </div>
           <div style="margin-top:2rem; display:flex; justify-content:space-between;">
-            <button onclick="previousCard()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
-            <button onclick="flipCard()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Flip Card</button>
-            <button onclick="nextCard()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
+            <button onclick="previousCard()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
+            <button onclick="flipCard()" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Flip Card</button>
+            <button onclick="nextCard()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
           </div>
           <div style="margin-top:1rem; text-align:center; opacity:0.7;">
             Card ${currentIndex + 1} of ${set.cards.length}
@@ -732,11 +1057,11 @@
       function renderCard() {
         const card = set.cards[currentIndex];
         studyModeContainer.innerHTML = `
-          <div style="background:#333; border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
+          <div style="background:var(--bg-tertiary); border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
             <h3 style="margin-top:0; margin-bottom:1.5rem;">${card.front}</h3>
-            <textarea id="practiceAnswer" placeholder="Type your answer here..." style="width:100%; padding:1rem; background:#1a1a1a; border:1px solid #444; border-radius:0.5rem; color:#e0e0e0; min-height:100px; margin-bottom:1rem;"></textarea>
+            <textarea id="practiceAnswer" placeholder="Type your answer here..." style="width:100%; padding:1rem; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:0.5rem; color:var(--text-primary); min-height:100px; margin-bottom:1rem;"></textarea>
             <div id="feedbackAreaEl" style="margin-bottom:1rem; min-height:30px;"></div>
-            <button onclick="checkAnswer()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Check Answer</button>
+            <button onclick="checkAnswer()" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Check Answer</button>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>Score: ${score}/${set.cards.length}</div>
@@ -780,10 +1105,15 @@
             <h2 style="margin-top:0;">Practice Complete!</h2>
             <div style="font-size:3rem; margin:1rem 0;">${score}/${set.cards.length}</div>
             <p style="margin-bottom:2rem;">You got ${score} out of ${set.cards.length} correct.</p>
-            <button onclick="startStudyMode('practice')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Try Again</button>
-            <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+            <button onclick="startStudyMode('practice')" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Try Again</button>
+            <button onclick="showStudyView('${set.id}')" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
           </div>
         `;
+        
+        // Add celebration effect
+        if (score === set.cards.length) {
+          createCelebration();
+        }
       }
       
       renderCard();
@@ -862,10 +1192,13 @@
                   <div style="text-align:center; padding:2rem;">
                     <h2 style="margin-top:0;">Matching Complete!</h2>
                     <p style="margin-bottom:2rem;">You've matched all pairs correctly!</p>
-                    <button onclick="startStudyMode('matching')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Play Again</button>
-                    <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+                    <button onclick="startStudyMode('matching')" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Play Again</button>
+                    <button onclick="showStudyView('${set.id}')" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
                   </div>
                 `;
+                
+                // Add celebration effect
+                createCelebration();
               }, 500);
             }
           } else {
@@ -903,20 +1236,20 @@
       function renderQuestion() {
         const q = questions[currentQuestion];
         studyModeContainer.innerHTML = `
-          <div style="background:#333; border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
+          <div style="background:var(--bg-tertiary); border-radius:1rem; padding:2rem; margin-bottom:1.5rem;">
             <h3 style="margin-top:0; margin-bottom:1.5rem;">Question ${currentQuestion + 1} of ${questions.length}</h3>
             <p style="font-size:1.2rem; margin-bottom:1.5rem;">${q.question}</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
               ${q.options.map((option, i) => `
-                <button onclick="selectAnswer('${option}')" class="test-option" style="background:#1a1a1a; border:1px solid #444; color:#e0e0e0; padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:left; transition:all 0.2s;">
+                <button onclick="selectAnswer('${option}')" class="test-option" style="background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary); padding:1rem; border-radius:0.5rem; cursor:pointer; text-align:left; transition:all 0.2s;">
                   ${String.fromCharCode(65 + i)}. ${option}
                 </button>
               `).join('')}
             </div>
           </div>
           <div style="display:flex; justify-content:space-between;">
-            <button onclick="previousQuestion()" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
-            <button onclick="nextQuestion()" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
+            <button onclick="previousQuestion()" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Previous</button>
+            <button onclick="nextQuestion()" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Next</button>
           </div>
         `;
       }
@@ -938,9 +1271,11 @@
         // Visual feedback
         document.querySelectorAll('.test-option').forEach(btn => {
           if (btn.textContent.includes(answer)) {
-            btn.style.background = '#667eea';
+            btn.style.background = 'var(--accent-primary)';
+            btn.style.color = 'white';
           } else {
-            btn.style.background = '#1a1a1a';
+            btn.style.background = 'var(--bg-secondary)';
+            btn.style.color = 'var(--text-primary)';
           }
         });
       };
@@ -985,14 +1320,228 @@
               <h2 style="margin-top:0;">Test Complete!</h2>
               <div style="font-size:3rem; margin:1rem 0;">${score}/${questions.length}</div>
               <p style="margin-bottom:2rem;">You got ${score} out of ${questions.length} correct.</p>
-              <button onclick="startStudyMode('test')" style="background:#667eea; border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Retake Test</button>
-              <button onclick="showStudyView('${set.id}')" style="background:#444; border:none; color:#e0e0e0; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+              <button onclick="startStudyMode('test')" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Retake Test</button>
+              <button onclick="showStudyView('${set.id}')" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
             </div>
           `;
+          
+          // Add celebration effect if perfect score
+          if (score === questions.length) {
+            createCelebration();
+          }
         }
       };
       
       renderQuestion();
+    }
+
+    // Lightning round mode
+    function renderLightningMode() {
+      const set = state.currentSet;
+      const timeLimit = 60; // seconds
+      let timeLeft = timeLimit;
+      let score = 0;
+      let currentCardIndex = 0;
+      let timerInterval;
+      
+      function startTimer() {
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          timerEl.textContent = timeLeft;
+          
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endRound();
+          }
+        }, 1000);
+      }
+      
+      function renderCard() {
+        const card = set.cards[currentCardIndex];
+        studyModeContainer.innerHTML = `
+          <div class="lightning-container">
+            <h3 style="margin-top:0; margin-bottom:0.5rem;">⚡ Lightning Round</h3>
+            <p style="margin:0 0 1rem 0; opacity:0.7;">Answer as many questions as you can in ${timeLimit} seconds!</p>
+            
+            <div class="lightning-timer" id="timerEl">${timeLeft}</div>
+            <div class="lightning-score">Score: ${score}</div>
+            
+            <div class="lightning-question">${card.front}</div>
+            
+            <input id="lightningAnswer" class="lightning-input" type="text" placeholder="Type your answer..." onkeypress="if(event.key==='Enter') checkLightningAnswer()">
+            <button onclick="checkLightningAnswer()" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Submit</button>
+          </div>
+        `;
+        
+        // Focus on input
+        setTimeout(() => {
+          lightningAnswer.focus();
+        }, 100);
+      }
+      
+      window.checkLightningAnswer = function() {
+        const userAnswer = lightningAnswer.value.trim().toLowerCase();
+        const correctAnswer = set.cards[currentCardIndex].back.toLowerCase();
+        
+        if (userAnswer === correctAnswer) {
+          score++;
+          currentCardIndex = (currentCardIndex + 1) % set.cards.length;
+          renderCard();
+        } else {
+          // Shake animation for incorrect answer
+          lightningAnswer.style.animation = 'shake 0.5s';
+          setTimeout(() => {
+            lightningAnswer.style.animation = '';
+          }, 500);
+        }
+      };
+      
+      function endRound() {
+        studyModeContainer.innerHTML = `
+          <div style="text-align:center; padding:2rem;">
+            <h2 style="margin-top:0;">Lightning Round Complete!</h2>
+            <div style="font-size:3rem; margin:1rem 0;">${score} points</div>
+            <p style="margin-bottom:2rem;">You answered ${score} questions correctly in ${timeLimit} seconds!</p>
+            <button onclick="startStudyMode('lightning')" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Play Again</button>
+            <button onclick="showStudyView('${set.id}')" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+          </div>
+        `;
+        
+        // Add celebration effect
+        createCelebration();
+      }
+      
+      // Start the round
+      renderCard();
+      startTimer();
+    }
+
+    // Memory grid mode
+    function renderMemoryMode() {
+      const set = state.currentSet;
+      const gridSize = 4; // 4x4 grid
+      const cards = [];
+      
+      // Create pairs of cards
+      for (let i = 0; i < (gridSize * gridSize) / 2; i++) {
+        const cardIndex = i % set.cards.length;
+        cards.push(set.cards[cardIndex]);
+        cards.push(set.cards[cardIndex]);
+      }
+      
+      // Shuffle cards
+      cards.sort(() => Math.random() - 0.5);
+      
+      let flippedCards = [];
+      let matchedPairs = 0;
+      let moves = 0;
+      
+      studyModeContainer.innerHTML = `
+        <div style="text-align:center; margin-bottom:1.5rem;">
+          <h3 style="margin-top:0; margin-bottom:0.5rem;">🧠 Memory Grid</h3>
+          <p style="margin:0; opacity:0.7;">Match all pairs with the fewest moves!</p>
+          <div style="margin-top:1rem; font-size:1.2rem;">Moves: <span id="movesCount">0</span></div>
+        </div>
+        <div class="memory-grid" id="memoryGridEl"></div>
+      `;
+      
+      const grid = memoryGridEl;
+      
+      // Render memory cards
+      cards.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'memory-card';
+        cardEl.dataset.index = index;
+        cardEl.dataset.pair = card.front;
+        cardEl.innerHTML = `
+          <div class="memory-card-content memory-card-front">?</div>
+          <div class="memory-card-content memory-card-back">${card.front}</div>
+        `;
+        cardEl.onclick = () => flipCard(index);
+        grid.appendChild(cardEl);
+      });
+      
+      window.flipCard = function(index) {
+        const card = document.querySelector(`[data-index="${index}"]`);
+        
+        // Ignore if already flipped or matched
+        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        
+        // Ignore if two cards are already flipped
+        if (flippedCards.length >= 2) return;
+        
+        // Flip the card
+        card.classList.add('flipped');
+        flippedCards.push(index);
+        
+        // Check for match when two cards are flipped
+        if (flippedCards.length === 2) {
+          moves++;
+          movesCount.textContent = moves;
+          
+          const card1 = document.querySelector(`[data-index="${flippedCards[0]}"]`);
+          const card2 = document.querySelector(`[data-index="${flippedCards[1]}"]`);
+          
+          if (card1.dataset.pair === card2.dataset.pair) {
+            // Match found
+            setTimeout(() => {
+              card1.classList.add('matched');
+              card2.classList.add('matched');
+              flippedCards = [];
+              matchedPairs++;
+              
+              // Check if all pairs are matched
+              if (matchedPairs === (gridSize * gridSize) / 2) {
+                endMemoryGame();
+              }
+            }, 500);
+          } else {
+            // No match
+            setTimeout(() => {
+              card1.classList.remove('flipped');
+              card2.classList.remove('flipped');
+              flippedCards = [];
+            }, 1000);
+          }
+        }
+      };
+      
+      function endMemoryGame() {
+        studyModeContainer.innerHTML = `
+          <div style="text-align:center; padding:2rem;">
+            <h2 style="margin-top:0;">Memory Grid Complete!</h2>
+            <div style="font-size:3rem; margin:1rem 0;">${moves} moves</div>
+            <p style="margin-bottom:2rem;">You matched all pairs in ${moves} moves!</p>
+            <button onclick="startStudyMode('memory')" style="background:var(--accent-primary); border:none; color:white; padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer; margin-right:1rem;">Play Again</button>
+            <button onclick="showStudyView('${set.id}')" style="background:var(--bg-tertiary); border:1px solid var(--border-color); color:var(--text-primary); padding:0.7rem 1.5rem; border-radius:0.5rem; cursor:pointer;">Back to Set</button>
+          </div>
+        `;
+        
+        // Add celebration effect
+        createCelebration();
+      }
+    }
+
+    // Create celebration effect
+    function createCelebration() {
+      const celebration = document.createElement('div');
+      celebration.className = 'celebration';
+      document.body.appendChild(celebration);
+      
+      // Create confetti
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDelay = `${Math.random() * 3}s`;
+        celebration.appendChild(confetti);
+      }
+      
+      // Remove celebration after animation
+      setTimeout(() => {
+        celebration.remove();
+      }, 3000);
     }
 
     // Search functionality
@@ -1022,7 +1571,7 @@
         
         const setEl = document.createElement('div');
         setEl.className = 'card-item';
-        setEl.style.cssText = 'background:#1a1a1a; border-radius:1rem; overflow:hidden; border:1px solid #333; transition:all 0.2s; cursor:pointer;';
+        setEl.style.cssText = 'background:var(--bg-secondary); border-radius:1rem; overflow:hidden; border:1px solid var(--border-color); cursor:pointer;';
         setEl.innerHTML = `
           <div style="height:150px; background-image:url(${set.cover || 'https://placehold.co/300x200/333/fff?text=Flashcards'}); background-size:cover; background-position:center;"></div>
           <div style="padding:1.2rem;">
@@ -1030,8 +1579,8 @@
             <p style="margin:0 0 1rem 0; opacity:0.7; font-size:0.9rem;">${set.description}</p>
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:0.9rem; opacity:0.7;">${progress.mastered}/${progress.total} mastered</span>
-              <div style="width:100px; height:8px; background:#333; border-radius:4px; overflow:hidden;">
-                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, #667eea, #764ba2);"></div>
+              <div style="width:100px; height:8px; background:var(--bg-tertiary); border-radius:4px; overflow:hidden;">
+                <div style="width:${progressPercent}%; height:100%; background:linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));"></div>
               </div>
             </div>
           </div>
@@ -1128,12 +1677,12 @@
           const response = await root.generateText(prompt);
           
           // Update last message
-          const messages = document.querySelectorAll('#aiChatMessages > div');
+          const messages = document.querySelectorAll('#aiChatMessagesEl > div');
           const lastMessage = messages[messages.length - 1];
           lastMessage.innerHTML = `<strong>AI:</strong> ${response}`;
         } catch (error) {
           console.error('Error generating AI response:', error);
-          const messages = document.querySelectorAll('#aiChatMessages > div');
+          const messages = document.querySelectorAll('#aiChatMessagesEl > div');
           const lastMessage = messages[messages.length - 1];
           lastMessage.innerHTML = `<strong>AI:</strong> Sorry, I encountered an error. Please try again.`;
         }
@@ -1143,11 +1692,27 @@
     function addAIMessage(sender, message) {
       const messagesContainer = aiChatMessagesEl;
       const messageEl = document.createElement('div');
-      messageEl.style.cssText = 'background:#333; padding:0.8rem; border-radius:0.5rem; margin-bottom:0.8rem;';
+      messageEl.style.cssText = 'background:var(--bg-tertiary); padding:0.8rem; border-radius:0.5rem; margin-bottom:0.8rem;';
       messageEl.innerHTML = `<strong>${sender}:</strong> ${message}`;
       messagesContainer.appendChild(messageEl);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</div>
 
     // Initialize app when DOM is loaded
     document.addEventListener('DOMContentLoaded', initApp);
